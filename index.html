@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIGROP — Sistema de Gestão de Relatórios de Ocorrências Policiais</title>
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, collection, addDoc, getDocs, doc, updateDoc,
+    deleteDoc, onSnapshot, serverTimestamp, query, orderBy }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  // =============================================
+  // SUBSTITUA PELOS SEUS DADOS DO FIREBASE
+  // =============================================
+  const firebaseConfig = {
+    apiKey: "AIzaSyAncqRwVPRSGmIjqJDgMLpdhzO1NCdnQ48",
+    authDomain: "sigrop-pm3bprv.firebaseapp.com",
+    projectId: "sigrop-pm3bprv",
+    storageBucket: "sigrop-pm3bprv.firebasestorage.app",
+    messagingSenderId: "917385998714",
+    appId: "1:917385998714:web:b4983ade086420461ae6c3"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  window._sigrop = { auth, db, signInWithEmailAndPassword, signOut,
+    onAuthStateChanged, collection, addDoc, getDocs, doc, updateDoc,
+    deleteDoc, onSnapshot, serverTimestamp, query, orderBy };
+</script>
+
+<!-- jsPDF para exportação -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+  /* ── TOKENS ───────────────────────────────────────────── */
+  :root {
+    --bg:        #0d1117;
+    --bg2:       #161b22;
+    --bg3:       #21262d;
+    --border:    #30363d;
+    --accent:    #1f6feb;
+    --accent2:   #388bfd;
+    --danger:    #da3633;
+    --success:   #238636;
+    --warn:      #d29922;
+    --txt:       #e6edf3;
+    --txt2:      #8b949e;
+    --txt3:      #6e7681;
+    --radius:    8px;
+    --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+    --font-ui:   'IBM Plex Sans', 'Segoe UI', sans-serif;
+  }
+
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--txt);
+    font-family: var(--font-ui);
+    font-size: 14px;
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* ── SCROLLBAR ────────────────────────────────────────── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ── TELA DE LOGIN ────────────────────────────────────── */
+  #screen-login {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh;
+    background: radial-gradient(ellipse at 30% 40%, #0d2847 0%, var(--bg) 60%);
+  }
+
+  .login-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 48px 40px;
+    width: 100%; max-width: 400px;
+    box-shadow: 0 24px 64px rgba(0,0,0,.6);
+  }
+
+  .login-logo {
+    text-align: center; margin-bottom: 32px;
+  }
+  .login-logo .sigla {
+    font-family: var(--font-mono);
+    font-size: 28px; font-weight: 500;
+    color: var(--accent2);
+    letter-spacing: 4px;
+  }
+  .login-logo .nome {
+    font-size: 11px; color: var(--txt3);
+    letter-spacing: 2px; text-transform: uppercase;
+    margin-top: 4px;
+  }
+  .login-logo .brasao {
+    font-size: 40px; margin-bottom: 12px;
+  }
+
+  .field-group { margin-bottom: 16px; }
+  .field-group label {
+    display: block; font-size: 12px;
+    color: var(--txt2); margin-bottom: 6px;
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+  .field-group input, .field-group select, .field-group textarea {
+    width: 100%; background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--txt); padding: 10px 12px;
+    font-family: var(--font-ui); font-size: 14px;
+    outline: none; transition: border-color .2s;
+  }
+  .field-group input:focus, .field-group select:focus, .field-group textarea:focus {
+    border-color: var(--accent);
+  }
+  .field-group textarea { resize: vertical; min-height: 100px; }
+  .field-group select option { background: var(--bg3); }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 18px; border-radius: var(--radius);
+    font-family: var(--font-ui); font-size: 14px; font-weight: 500;
+    cursor: pointer; border: none; transition: all .2s;
+    text-decoration: none;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent2); }
+  .btn-danger  { background: var(--danger); color: #fff; }
+  .btn-danger:hover { filter: brightness(1.15); }
+  .btn-success { background: var(--success); color: #fff; }
+  .btn-success:hover { filter: brightness(1.15); }
+  .btn-ghost {
+    background: transparent; color: var(--txt2);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { background: var(--bg3); color: var(--txt); }
+  .btn-warn { background: var(--warn); color: #000; }
+  .btn-full { width: 100%; justify-content: center; }
+
+  #login-error {
+    color: var(--danger); font-size: 12px;
+    margin-top: 8px; min-height: 18px;
+  }
+
+  /* ── LAYOUT PRINCIPAL ─────────────────────────────────── */
+  #screen-app { display: none; }
+
+  .topbar {
+    background: var(--bg2); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; height: 56px; position: sticky; top: 0; z-index: 100;
+  }
+  .topbar-brand {
+    font-family: var(--font-mono);
+    font-size: 16px; font-weight: 500;
+    color: var(--accent2); letter-spacing: 3px;
+  }
+  .topbar-user {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 13px; color: var(--txt2);
+  }
+  .topbar-unit {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 20px; padding: 4px 12px;
+    font-size: 12px; color: var(--txt2);
+  }
+
+  .nav-tabs {
+    background: var(--bg2); border-bottom: 1px solid var(--border);
+    display: flex; padding: 0 24px; gap: 0;
+  }
+  .nav-tab {
+    padding: 12px 20px; cursor: pointer;
+    font-size: 13px; color: var(--txt2);
+    border-bottom: 2px solid transparent;
+    transition: all .2s; display: flex; align-items: center; gap: 6px;
+  }
+  .nav-tab:hover { color: var(--txt); }
+  .nav-tab.active { color: var(--accent2); border-bottom-color: var(--accent2); }
+
+  .main-content { padding: 24px; max-width: 1200px; margin: 0 auto; }
+
+  /* ── TELAS ────────────────────────────────────────────── */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ── LISTAGEM ─────────────────────────────────────────── */
+  .page-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .page-title { font-size: 18px; font-weight: 600; }
+  .page-subtitle { font-size: 13px; color: var(--txt3); margin-top: 2px; }
+
+  .stats-row {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px; margin-bottom: 20px;
+  }
+  .stat-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px 20px;
+  }
+  .stat-card .val {
+    font-size: 28px; font-weight: 600;
+    font-family: var(--font-mono); color: var(--accent2);
+  }
+  .stat-card .lbl { font-size: 12px; color: var(--txt3); margin-top: 4px; }
+
+  .filter-bar {
+    display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;
+  }
+  .filter-bar input, .filter-bar select {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); color: var(--txt);
+    padding: 8px 12px; font-family: var(--font-ui); font-size: 13px;
+    outline: none;
+  }
+  .filter-bar input { flex: 1; min-width: 200px; }
+
+  .table-wrap {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead { background: var(--bg3); }
+  th {
+    padding: 10px 14px; text-align: left;
+    font-size: 11px; color: var(--txt3);
+    text-transform: uppercase; letter-spacing: 1px;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 12px 14px; font-size: 13px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--bg3); }
+
+  .badge {
+    display: inline-block; padding: 2px 10px;
+    border-radius: 20px; font-size: 11px; font-weight: 500;
+  }
+  .badge-em-andamento { background: rgba(210,153,34,.2); color: var(--warn); }
+  .badge-concluido    { background: rgba(35,134,54,.2);  color: var(--success); }
+  .badge-cancelado    { background: rgba(218,54,51,.2);  color: var(--danger); }
+
+  /* ── FORMULÁRIO ───────────────────────────────────────── */
+  .form-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 28px;
+    margin-bottom: 16px;
+  }
+  .form-section-title {
+    font-size: 11px; text-transform: uppercase;
+    letter-spacing: 2px; color: var(--accent2);
+    margin-bottom: 18px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+  }
+  .form-grid .full { grid-column: 1 / -1; }
+
+  /* ── ADMIN ────────────────────────────────────────────── */
+  .admin-section {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 24px; margin-bottom: 16px;
+  }
+  .admin-section h3 {
+    font-size: 14px; font-weight: 600; margin-bottom: 16px;
+    color: var(--txt2);
+  }
+  .list-manage { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .list-manage li {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 10px 14px;
+    font-size: 13px;
+  }
+  .list-manage li.inativo { opacity: .45; text-decoration: line-through; }
+  .list-manage li .actions { display: flex; gap: 6px; }
+
+  /* ── MODAL ────────────────────────────────────────────── */
+  .modal-backdrop {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.7); z-index: 200;
+    align-items: center; justify-content: center;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 28px;
+    width: 100%; max-width: 680px; max-height: 90vh;
+    overflow-y: auto; margin: 16px;
+  }
+  .modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .modal-title { font-size: 16px; font-weight: 600; }
+  .modal-close {
+    background: none; border: none; color: var(--txt2);
+    font-size: 20px; cursor: pointer; line-height: 1;
+    padding: 4px 8px; border-radius: 4px;
+  }
+  .modal-close:hover { background: var(--bg3); color: var(--txt); }
+
+  /* ── RELATÓRIO VISUALIZAÇÃO ───────────────────────────── */
+  .report-view {
+    background: var(--bg3); border-radius: var(--radius);
+    padding: 20px; font-family: var(--font-mono);
+    font-size: 13px; line-height: 1.8; white-space: pre-wrap;
+    color: var(--txt);
+  }
+  .report-view strong { color: var(--accent2); }
+
+  /* ── TOAST ────────────────────────────────────────────── */
+  #toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 12px 20px;
+    font-size: 13px; z-index: 300;
+    transform: translateY(80px); opacity: 0;
+    transition: all .3s;
+    display: flex; align-items: center; gap: 10px;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+  #toast.ok  { border-left: 3px solid var(--success); }
+  #toast.err { border-left: 3px solid var(--danger);  }
+
+  /* ── EMPTY STATE ──────────────────────────────────────── */
+  .empty {
+    text-align: center; padding: 60px 20px; color: var(--txt3);
+  }
+  .empty .icon { font-size: 48px; margin-bottom: 12px; }
+  .empty p { font-size: 14px; }
+
+  /* ── SPINNER ──────────────────────────────────────────── */
+  .spinner {
+    display: inline-block; width: 16px; height: 16px;
+    border: 2px solid var(--border); border-top-color: var(--accent2);
+    border-radius: 50%; animation: spin .6s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── RESPONSIVE ───────────────────────────────────────── */
+  @media (max-width: 600px) {
+    .main-content { padding: 16px; }
+    .topbar { padding: 0 16px; }
+    .topbar-brand { font-size: 13px; }
+    .page-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════ LOGIN ═══════════════════════════ -->
+<div id="screen-login">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="brasao">🛡️</div>
+      <div class="sigla">SIGROP</div>
+      <div class="nome">Sistema de Gestão de Relatórios de Ocorrências Policiais</div>
+    </div>
+    <div class="field-group">
+      <label>Unidade / Usuário</label>
+      <input type="email" id="login-email" placeholder="unidade@pm.sp.gov.br" autocomplete="username">
+    </div>
+    <div class="field-group">
+      <label>Senha</label>
+      <input type="password" id="login-senha" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <div id="login-error"></div>
+    <button class="btn btn-primary btn-full" style="margin-top:16px" onclick="fazerLogin()">
+      <span id="btn-login-txt">Acessar Sistema</span>
+    </button>
+    <p style="text-align:center;margin-top:16px;font-size:12px;color:var(--txt3)">
+      SIGROP v1.0 — Acesso restrito
+    </p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ APP ═════════════════════════════ -->
+<div id="screen-app">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <span class="topbar-brand">🛡️ SIGROP</span>
+    <div class="topbar-user">
+      <span class="topbar-unit" id="user-unit">—</span>
+      <button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="fazerLogout()">Sair</button>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <div class="nav-tabs">
+    <div class="nav-tab active" onclick="irPara('listagem')" id="tab-listagem">
+      📋 Ocorrências
+    </div>
+    <div class="nav-tab" onclick="irPara('nova')" id="tab-nova">
+      ➕ Nova Ocorrência
+    </div>
+    <div class="nav-tab" id="tab-admin" onclick="irPara('admin')" style="display:none">
+      ⚙️ Administração
+    </div>
+  </div>
+
+  <div class="main-content">
+
+    <!-- ── TELA: LISTAGEM ───────────────────────────────── -->
+    <div class="screen active" id="screen-listagem">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Ocorrências Registradas</div>
+          <div class="page-subtitle">Atualização em tempo real</div>
+        </div>
+        <button class="btn btn-primary" onclick="irPara('nova')">
+          ➕ Nova Ocorrência
+        </button>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="val" id="stat-total">0</div>
+          <div class="lbl">Total de Ocorrências</div>
+        </div>
+        <div class="stat-card">
+          <div class="val" id="stat-andamento">0</div>
+          <div class="lbl">Em Andamento</div>
+        </div>
+        <div class="stat-card">
+          <div class="val" id="stat-hoje">0</div>
+          <div class="lbl">Registradas Hoje</div>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <input type="text" id="filtro-busca" placeholder="🔍 Buscar por fato, município, endereço…" oninput="filtrarOcorrencias()">
+        <select id="filtro-status" onchange="filtrarOcorrencias()">
+          <option value="">Todos os status</option>
+          <option>Em andamento</option>
+          <option>Concluído</option>
+          <option>Cancelado</option>
+        </select>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Fato</th>
+              <th>Município</th>
+              <th>Endereço</th>
+              <th>Efetivo</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-ocorrencias">
+            <tr>
+              <td colspan="7">
+                <div class="empty">
+                  <div class="icon">📄</div>
+                  <p>Carregando ocorrências…</p>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── TELA: NOVA OCORRÊNCIA ───────────────────────── -->
+    <div class="screen" id="screen-nova">
+      <div class="page-header">
+        <div>
+          <div class="page-title" id="form-titulo">Nova Ocorrência</div>
+          <div class="page-subtitle" id="form-subtitulo">Preencha todos os campos obrigatórios</div>
+        </div>
+        <button class="btn btn-ghost" onclick="irPara('listagem')">← Voltar</button>
+      </div>
+
+      <form id="form-ocorrencia" onsubmit="salvarOcorrencia(event)">
+
+        <!-- IDENTIFICAÇÃO -->
+        <div class="form-card">
+          <div class="form-section-title">📌 Identificação da Ocorrência</div>
+          <div class="form-grid">
+            <div class="field-group full">
+              <label>Fato *</label>
+              <select id="f-fato" required>
+                <option value="">Selecione o tipo de fato…</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label>Ambiente *</label>
+              <select id="f-ambiente" required>
+                <option value="">Selecione…</option>
+                <option>Rodovia</option>
+                <option>Rua</option>
+                <option>Casa</option>
+                <option>Bar</option>
+                <option>Automóvel</option>
+                <option>Fábrica</option>
+                <option>Área Rural</option>
+                <option>Outros</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label>Data *</label>
+              <input type="date" id="f-data" required>
+            </div>
+            <div class="field-group">
+              <label>Tempo de Resposta</label>
+              <input type="text" id="f-tempo-resposta" placeholder="Ex: 01h30min">
+            </div>
+            <div class="field-group">
+              <label>Efetivo Empenhado</label>
+              <input type="text" id="f-efetivo" placeholder="Ex: 02 PMRv">
+            </div>
+          </div>
+        </div>
+
+        <!-- LOCALIZAÇÃO -->
+        <div class="form-card">
+          <div class="form-section-title">📍 Localização</div>
+          <div class="form-grid">
+            <div class="field-group full">
+              <label>Endereço *</label>
+              <input type="text" id="f-endereco" required placeholder="Logradouro completo, KM, referência…">
+            </div>
+            <div class="field-group">
+              <label>Município *</label>
+              <input type="text" id="f-municipio" required placeholder="Cidade – UF">
+            </div>
+            <div class="field-group">
+              <label>Socorros de</label>
+              <input type="text" id="f-socorro" placeholder="Pronto-Socorro de…">
+            </div>
+          </div>
+        </div>
+
+        <!-- UNIDADES -->
+        <div class="form-card">
+          <div class="form-section-title">🏛️ Unidades Envolvidas</div>
+          <div class="form-grid">
+            <div class="field-group">
+              <label>Btl</label>
+              <input type="text" id="f-btl" placeholder="Ex: 3º BPRv">
+            </div>
+            <div class="field-group">
+              <label>Cia</label>
+              <input type="text" id="f-cia" placeholder="Ex: 1ª Cia">
+            </div>
+            <div class="field-group">
+              <label>Pel</label>
+              <input type="text" id="f-pel" placeholder="Ex: 3º Pelotão">
+            </div>
+            <div class="field-group">
+              <label>Horário de Serviço</label>
+              <input type="text" id="f-horario" placeholder="Ex: 15h30min">
+            </div>
+            <div class="field-group full">
+              <label>Unidades Policiais que Atenderam</label>
+              <input type="text" id="f-unidades-pol" placeholder="Cb PM, Sd PM…">
+            </div>
+            <div class="field-group">
+              <label>Vtr</label>
+              <input type="text" id="f-vtr" placeholder="Ex: R-03128">
+            </div>
+            <div class="field-group">
+              <label>DP</label>
+              <input type="text" id="f-dp" placeholder="Ex: Em andamento">
+            </div>
+          </div>
+        </div>
+
+        <!-- VÍTIMAS / VEÍCULOS -->
+        <div class="form-card">
+          <div class="form-section-title">🚨 Vítimas e Veículos</div>
+          <div class="form-grid">
+            <div class="field-group">
+              <label>Qtd. Vítimas (fatais, graves, leves)</label>
+              <input type="text" id="f-vitimas-qtd" placeholder="Ex: 01 (uma) vítima fatal">
+            </div>
+            <div class="field-group">
+              <label>Qtd. Veículos Envolvidos</label>
+              <input type="text" id="f-veiculos-qtd" placeholder="Ex: 01 (uma) motocicleta">
+            </div>
+            <div class="field-group full">
+              <label>Descrição Via e Condições Climáticas</label>
+              <input type="text" id="f-via" placeholder="Ex: Pista simples, tempo bom, pista seca">
+            </div>
+            <div class="field-group">
+              <label>Vítimas em Óbito</label>
+              <input type="text" id="f-obito" placeholder="Ex: A qualificar">
+            </div>
+            <div class="field-group">
+              <label>Vítimas Sobreviventes</label>
+              <input type="text" id="f-sobreviventes" placeholder="Ex: Não há">
+            </div>
+          </div>
+        </div>
+
+        <!-- COMANDO -->
+        <div class="form-card">
+          <div class="form-section-title">👤 Comando</div>
+          <div class="form-grid">
+            <div class="field-group full">
+              <label>Nome Completo CMT CPA/CPI - CBM/CBI</label>
+              <input type="text" id="f-cmt-cpa" placeholder="Posto, Nome completo">
+            </div>
+            <div class="field-group full">
+              <label>Nome Completo CMT BTL/INTERINO - GB</label>
+              <input type="text" id="f-cmt-btl" placeholder="Posto, Nome completo">
+            </div>
+            <div class="field-group full">
+              <label>Nome Completo CMT CIA/INTERINO</label>
+              <input type="text" id="f-cmt-cia-int" placeholder="Posto, Nome completo">
+            </div>
+          </div>
+        </div>
+
+        <!-- REGISTRO / HISTÓRICO -->
+        <div class="form-card">
+          <div class="form-section-title">📝 Registro e Histórico</div>
+          <div class="form-grid">
+            <div class="field-group full">
+              <label>Registro (BO/PM, BO/PC, Sindicância, IPM, Investigação Preliminar)</label>
+              <input type="text" id="f-registro" placeholder="Ex: BO-e Token BO202...">
+            </div>
+            <div class="field-group full">
+              <label>Histórico *</label>
+              <textarea id="f-historico" required placeholder="Descreva os fatos com riqueza de detalhes…" style="min-height:140px"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- AUTORIDADES -->
+        <div class="form-card">
+          <div class="form-section-title">🏅 Autoridades</div>
+          <div class="form-grid">
+            <div class="field-group full">
+              <label>Autoridades que Comparecerão no Local</label>
+              <input type="text" id="f-autoridades-local" placeholder="Ex: 1º Sgt PM Prado (CGPRv da 1ª Companhia)">
+            </div>
+            <div class="field-group full">
+              <label>Autoridades Cientificadas da Ocorrência</label>
+              <input type="text" id="f-autoridades-cient" placeholder="Ex: 1º Ten PM Vila (Oficial de permanência da 1ª Cia/PM)">
+            </div>
+          </div>
+        </div>
+
+        <!-- STATUS -->
+        <div class="form-card">
+          <div class="form-section-title">🔖 Status da Ocorrência</div>
+          <div class="form-grid">
+            <div class="field-group">
+              <label>Status *</label>
+              <select id="f-status" required>
+                <option>Em andamento</option>
+                <option>Concluído</option>
+                <option>Cancelado</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+          <button type="button" class="btn btn-ghost" onclick="irPara('listagem')">Cancelar</button>
+          <button type="submit" class="btn btn-success" id="btn-salvar">
+            💾 Salvar Ocorrência
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- ── TELA: ADMINISTRAÇÃO ─────────────────────────── -->
+    <div class="screen" id="screen-admin">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Administração</div>
+          <div class="page-subtitle">Gestão de tipos de fato e unidades</div>
+        </div>
+      </div>
+
+      <div class="admin-section">
+        <h3>📋 Tipos de Fato</h3>
+        <div style="display:flex;gap:8px;margin-bottom:16px">
+          <input type="text" id="novo-fato-input"
+            placeholder="Nome do novo tipo de fato…"
+            style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--txt);padding:9px 12px;font-family:var(--font-ui);font-size:13px;outline:none">
+          <button class="btn btn-success" onclick="adicionarFato()">+ Adicionar</button>
+        </div>
+        <ul class="list-manage" id="lista-fatos-admin"></ul>
+      </div>
+
+      <div class="admin-section">
+        <h3>👥 Usuários / Unidades</h3>
+        <p style="font-size:13px;color:var(--txt3)">
+          O gerenciamento de usuários é realizado diretamente no console do Firebase Authentication.
+          Acesse: <strong style="color:var(--accent2)">console.firebase.google.com</strong>
+        </p>
+      </div>
+    </div>
+
+  </div><!-- /main-content -->
+</div><!-- /screen-app -->
+
+<!-- ═══════════ MODAL VISUALIZAR / EDITAR ═══════════ -->
+<div class="modal-backdrop" id="modal-backdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-titulo">Ocorrência</div>
+      <button class="modal-close" onclick="fecharModal()">✕</button>
+    </div>
+    <div id="modal-body"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px" id="modal-actions"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- ═══════════════════════ SCRIPT ════════════════════════════ -->
+<script>
+// ─── Estado global ──────────────────────────────────────────────
+let ocorrencias = [];
+let fatos = [];
+let usuarioAtual = null;
+let isAdmin = false;
+let editandoId = null;
+
+// Emails considerados administradores (adicione conforme necessário)
+const ADMINS = ['ejmurta@gmail.com'];
+
+// ─── Aguarda Firebase ────────────────────────────────────────────
+function waitFirebase(cb) {
+  if (window._sigrop) { cb(window._sigrop); }
+  else { setTimeout(() => waitFirebase(cb), 100); }
+}
+
+// ─── LOGIN ───────────────────────────────────────────────────────
+async function fazerLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const senha = document.getElementById('login-senha').value;
+  const err   = document.getElementById('login-error');
+  const txt   = document.getElementById('btn-login-txt');
+  err.textContent = '';
+  txt.innerHTML = '<span class="spinner"></span> Autenticando…';
+
+  waitFirebase(async ({ auth, signInWithEmailAndPassword }) => {
+    try {
+      await signInWithEmailAndPassword(auth, email, senha);
+    } catch (e) {
+      err.textContent = traduzirErroAuth(e.code);
+      txt.textContent = 'Acessar Sistema';
+    }
+  });
+}
+
+function traduzirErroAuth(code) {
+  const m = {
+    'auth/user-not-found':   'Usuário não encontrado.',
+    'auth/wrong-password':   'Senha incorreta.',
+    'auth/invalid-email':    'E-mail inválido.',
+    'auth/too-many-requests':'Muitas tentativas. Tente mais tarde.',
+    'auth/invalid-credential':'Credenciais inválidas.',
+  };
+  return m[code] || 'Erro ao autenticar. Verifique os dados.';
+}
+
+async function fazerLogout() {
+  waitFirebase(({ auth, signOut }) => signOut(auth));
+}
+
+// ─── AUTH STATE ──────────────────────────────────────────────────
+waitFirebase(({ auth, onAuthStateChanged }) => {
+  onAuthStateChanged(auth, user => {
+    if (user) {
+      usuarioAtual = user;
+      isAdmin = ADMINS.includes(user.email);
+      document.getElementById('user-unit').textContent = user.email;
+      document.getElementById('screen-login').style.display = 'none';
+      document.getElementById('screen-app').style.display   = 'block';
+      if (isAdmin) document.getElementById('tab-admin').style.display = 'flex';
+      inicializar();
+    } else {
+      usuarioAtual = null;
+      document.getElementById('screen-login').style.display = 'flex';
+      document.getElementById('screen-app').style.display   = 'none';
+    }
+  });
+});
+
+// ─── INICIALIZAR ─────────────────────────────────────────────────
+function inicializar() {
+  ouvirFatos();
+  ouvirOcorrencias();
+  document.getElementById('f-data').valueAsDate = new Date();
+}
+
+// ─── NAVEGAÇÃO ───────────────────────────────────────────────────
+function irPara(tela) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('screen-' + tela).classList.add('active');
+  document.getElementById('tab-' + tela).classList.add('active');
+
+  if (tela === 'nova' && !editandoId) {
+    limparFormulario();
+    document.getElementById('form-titulo').textContent    = 'Nova Ocorrência';
+    document.getElementById('form-subtitulo').textContent = 'Preencha todos os campos obrigatórios';
+    document.getElementById('btn-salvar').textContent     = '💾 Salvar Ocorrência';
+  }
+}
+
+// ─── FATOS ───────────────────────────────────────────────────────
+function ouvirFatos() {
+  waitFirebase(({ db, collection, onSnapshot, query, orderBy }) => {
+    const q = query(collection(db, 'fatos'), orderBy('nome'));
+    onSnapshot(q, snap => {
+      fatos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderFatosSelect();
+      renderFatosAdmin();
+    });
+  });
+}
+
+function renderFatosSelect() {
+  const sel = document.getElementById('f-fato');
+  const val = sel.value;
+  sel.innerHTML = '<option value="">Selecione o tipo de fato…</option>';
+  fatos.filter(f => f.ativo !== false).forEach(f => {
+    const o = document.createElement('option');
+    o.value = f.nome; o.textContent = f.nome;
+    sel.appendChild(o);
+  });
+  sel.value = val;
+}
+
+function renderFatosAdmin() {
+  const ul = document.getElementById('lista-fatos-admin');
+  if (!ul) return;
+  ul.innerHTML = '';
+  if (!fatos.length) {
+    ul.innerHTML = '<li style="color:var(--txt3)">Nenhum tipo de fato cadastrado.</li>';
+    return;
+  }
+  fatos.forEach(f => {
+    const li = document.createElement('li');
+    if (f.ativo === false) li.classList.add('inativo');
+    li.innerHTML = `
+      <span>${f.nome}</span>
+      <div class="actions">
+        <button class="btn btn-ghost" style="padding:4px 10px;font-size:12px"
+          onclick="toggleFato('${f.id}', ${f.ativo !== false})">
+          ${f.ativo === false ? 'Ativar' : 'Inibir'}
+        </button>
+        <button class="btn btn-danger" style="padding:4px 10px;font-size:12px"
+          onclick="excluirFato('${f.id}')">Excluir</button>
+      </div>`;
+    ul.appendChild(li);
+  });
+}
+
+async function adicionarFato() {
+  const inp = document.getElementById('novo-fato-input');
+  const nome = inp.value.trim();
+  if (!nome) return;
+  waitFirebase(async ({ db, collection, addDoc, serverTimestamp }) => {
+    await addDoc(collection(db, 'fatos'), { nome, ativo: true, criadoEm: serverTimestamp() });
+    inp.value = '';
+    toast('Tipo de fato adicionado.', 'ok');
+  });
+}
+
+function toggleFato(id, ativo) {
+  waitFirebase(({ db, doc, updateDoc }) => {
+    updateDoc(doc(db, 'fatos', id), { ativo: !ativo });
+  });
+}
+
+function excluirFato(id) {
+  if (!confirm('Excluir permanentemente este tipo de fato?')) return;
+  waitFirebase(({ db, doc, deleteDoc }) => {
+    deleteDoc(doc(db, 'fatos', id));
+    toast('Tipo de fato excluído.', 'ok');
+  });
+}
+
+// ─── OCORRÊNCIAS ─────────────────────────────────────────────────
+function ouvirOcorrencias() {
+  waitFirebase(({ db, collection, onSnapshot, query, orderBy }) => {
+    const q = query(collection(db, 'ocorrencias'), orderBy('criadoEm', 'desc'));
+    onSnapshot(q, snap => {
+      ocorrencias = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderTabela(ocorrencias);
+      atualizarStats();
+    });
+  });
+}
+
+function atualizarStats() {
+  document.getElementById('stat-total').textContent = ocorrencias.length;
+  document.getElementById('stat-andamento').textContent =
+    ocorrencias.filter(o => o.status === 'Em andamento').length;
+  const hoje = new Date().toISOString().split('T')[0];
+  document.getElementById('stat-hoje').textContent =
+    ocorrencias.filter(o => o.data === hoje).length;
+}
+
+function renderTabela(lista) {
+  const tbody = document.getElementById('tabela-ocorrencias');
+  if (!lista.length) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty">
+      <div class="icon">📄</div>
+      <p>Nenhuma ocorrência encontrada.</p>
+    </div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = lista.map(o => `
+    <tr>
+      <td style="font-family:var(--font-mono);white-space:nowrap">${fmtData(o.data)}</td>
+      <td>${o.fato || '—'}</td>
+      <td>${o.municipio || '—'}</td>
+      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+          title="${o.endereco || ''}">${o.endereco || '—'}</td>
+      <td>${o.efetivo || '—'}</td>
+      <td><span class="badge badge-${slugStatus(o.status)}">${o.status || '—'}</span></td>
+      <td>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-ghost" style="padding:4px 10px;font-size:12px"
+            onclick="verOcorrencia('${o.id}')">👁 Ver</button>
+          <button class="btn btn-ghost" style="padding:4px 10px;font-size:12px"
+            onclick="editarOcorrencia('${o.id}')">✏️</button>
+          <button class="btn btn-ghost" style="padding:4px 10px;font-size:12px"
+            onclick="exportarPDF('${o.id}')">📄</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function filtrarOcorrencias() {
+  const busca  = document.getElementById('filtro-busca').value.toLowerCase();
+  const status = document.getElementById('filtro-status').value;
+  const filtrado = ocorrencias.filter(o => {
+    const txt = [o.fato, o.municipio, o.endereco, o.historico].join(' ').toLowerCase();
+    return (!busca || txt.includes(busca)) && (!status || o.status === status);
+  });
+  renderTabela(filtrado);
+}
+
+// ─── FORMULÁRIO ──────────────────────────────────────────────────
+async function salvarOcorrencia(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btn-salvar');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Salvando…';
+
+  const dados = coletarDados();
+
+  waitFirebase(async ({ db, collection, addDoc, doc, updateDoc, serverTimestamp }) => {
+    try {
+      if (editandoId) {
+        await updateDoc(doc(db, 'ocorrencias', editandoId), {
+          ...dados, atualizadoEm: serverTimestamp(), atualizadoPor: usuarioAtual.email
+        });
+        toast('Ocorrência atualizada com sucesso.', 'ok');
+      } else {
+        await addDoc(collection(db, 'ocorrencias'), {
+          ...dados, criadoEm: serverTimestamp(), criadoPor: usuarioAtual.email
+        });
+        toast('Ocorrência registrada com sucesso.', 'ok');
+      }
+      editandoId = null;
+      irPara('listagem');
+    } catch (err) {
+      toast('Erro ao salvar: ' + err.message, 'err');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '💾 Salvar Ocorrência';
+    }
+  });
+}
+
+function coletarDados() {
+  return {
+    fato:            v('f-fato'),
+    ambiente:        v('f-ambiente'),
+    data:            v('f-data'),
+    tempoResposta:   v('f-tempo-resposta'),
+    efetivo:         v('f-efetivo'),
+    endereco:        v('f-endereco'),
+    municipio:       v('f-municipio'),
+    socorro:         v('f-socorro'),
+    btl:             v('f-btl'),
+    cia:             v('f-cia'),
+    pel:             v('f-pel'),
+    horario:         v('f-horario'),
+    unidadesPol:     v('f-unidades-pol'),
+    vtr:             v('f-vtr'),
+    dp:              v('f-dp'),
+    vitimasQtd:      v('f-vitimas-qtd'),
+    veiculosQtd:     v('f-veiculos-qtd'),
+    via:             v('f-via'),
+    obito:           v('f-obito'),
+    sobreviventes:   v('f-sobreviventes'),
+    cmtCpa:          v('f-cmt-cpa'),
+    cmtBtl:          v('f-cmt-btl'),
+    cmtCiaInt:       v('f-cmt-cia-int'),
+    registro:        v('f-registro'),
+    historico:       v('f-historico'),
+    autoridadesLocal: v('f-autoridades-local'),
+    autoridadesCient: v('f-autoridades-cient'),
+    status:          v('f-status'),
+  };
+}
+
+function preencherFormulario(o) {
+  sv('f-fato',            o.fato);
+  sv('f-ambiente',        o.ambiente);
+  sv('f-data',            o.data);
+  sv('f-tempo-resposta',  o.tempoResposta);
+  sv('f-efetivo',         o.efetivo);
+  sv('f-endereco',        o.endereco);
+  sv('f-municipio',       o.municipio);
+  sv('f-socorro',         o.socorro);
+  sv('f-btl',             o.btl);
+  sv('f-cia',             o.cia);
+  sv('f-pel',             o.pel);
+  sv('f-horario',         o.horario);
+  sv('f-unidades-pol',    o.unidadesPol);
+  sv('f-vtr',             o.vtr);
+  sv('f-dp',              o.dp);
+  sv('f-vitimas-qtd',     o.vitimasQtd);
+  sv('f-veiculos-qtd',    o.veiculosQtd);
+  sv('f-via',             o.via);
+  sv('f-obito',           o.obito);
+  sv('f-sobreviventes',   o.sobreviventes);
+  sv('f-cmt-cpa',         o.cmtCpa);
+  sv('f-cmt-btl',         o.cmtBtl);
+  sv('f-cmt-cia-int',     o.cmtCiaInt);
+  sv('f-registro',        o.registro);
+  sv('f-historico',       o.historico);
+  sv('f-autoridades-local', o.autoridadesLocal);
+  sv('f-autoridades-cient', o.autoridadesCient);
+  sv('f-status',          o.status);
+}
+
+function limparFormulario() {
+  document.getElementById('form-ocorrencia').reset();
+  document.getElementById('f-data').valueAsDate = new Date();
+  editandoId = null;
+}
+
+function editarOcorrencia(id) {
+  const o = ocorrencias.find(x => x.id === id);
+  if (!o) return;
+  editandoId = id;
+  preencherFormulario(o);
+  document.getElementById('form-titulo').textContent    = 'Editar Ocorrência';
+  document.getElementById('form-subtitulo').textContent = 'Modifique os campos necessários e salve';
+  document.getElementById('btn-salvar').textContent     = '💾 Atualizar Ocorrência';
+  irPara('nova');
+}
+
+// ─── VISUALIZAÇÃO ────────────────────────────────────────────────
+function verOcorrencia(id) {
+  const o = ocorrencias.find(x => x.id === id);
+  if (!o) return;
+  document.getElementById('modal-titulo').textContent = o.fato || 'Ocorrência';
+  document.getElementById('modal-body').innerHTML = `
+    <div class="report-view">${gerarTextoRelatorio(o)}</div>`;
+  document.getElementById('modal-actions').innerHTML = `
+    <button class="btn btn-ghost" onclick="fecharModal()">Fechar</button>
+    <button class="btn btn-warn" onclick="exportarPDF('${id}')">📄 Exportar PDF</button>
+    <button class="btn btn-primary" onclick="fecharModal();editarOcorrencia('${id}')">✏️ Editar</button>`;
+  document.getElementById('modal-backdrop').classList.add('open');
+}
+
+function fecharModal() {
+  document.getElementById('modal-backdrop').classList.remove('open');
+}
+
+// ─── EXPORTAR PDF ────────────────────────────────────────────────
+function exportarPDF(id) {
+  const o = ocorrencias.find(x => x.id === id);
+  if (!o) return;
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+  const marg = 18;
+  const larg = 210 - marg * 2;
+  let y = 20;
+
+  // Cabeçalho
+  pdf.setFontSize(10); pdf.setFont('helvetica', 'bold');
+  pdf.text('SIGROP — RELATÓRIO DE OCORRÊNCIA POLICIAL', 105, y, { align: 'center' });
+  y += 7;
+  pdf.setFontSize(8); pdf.setFont('helvetica', 'normal');
+  pdf.setTextColor(100);
+  pdf.text('Sistema de Gestão de Relatórios de Ocorrências Policiais', 105, y, { align: 'center' });
+  pdf.setTextColor(0);
+  y += 8;
+  pdf.line(marg, y, 210 - marg, y); y += 6;
+
+  const campos = [
+    ['Fato',                    o.fato],
+    ['Ambiente',                o.ambiente],
+    ['Data',                    fmtData(o.data)],
+    ['Tempo de Resposta',       o.tempoResposta],
+    ['Efetivo Empenhado',       o.efetivo],
+    ['Endereço',                o.endereco],
+    ['Município',               o.municipio],
+    ['Socorros de',             o.socorro],
+    ['Btl',                     o.btl],
+    ['Cia',                     o.cia],
+    ['Pel',                     o.pel],
+    ['Horário de Serviço',      o.horario],
+    ['Unidades Policiais',      o.unidadesPol],
+    ['Vtr',                     o.vtr],
+    ['DP',                      o.dp],
+    ['Qtd. Vítimas',            o.vitimasQtd],
+    ['Qtd. Veículos',           o.veiculosQtd],
+    ['Via / Condições',         o.via],
+    ['Vítimas em Óbito',        o.obito],
+    ['Vítimas Sobreviventes',   o.sobreviventes],
+    ['CMT CPA/CPI-CBM/CBI',    o.cmtCpa],
+    ['CMT BTL/INTERINO-GB',    o.cmtBtl],
+    ['CMT CIA/INTERINO',        o.cmtCiaInt],
+    ['Registro',                o.registro],
+    ['Autoridades no Local',    o.autoridadesLocal],
+    ['Autoridades Cientificadas', o.autoridadesCient],
+    ['Status',                  o.status],
+  ];
+
+  pdf.setFontSize(9);
+  campos.forEach(([label, val]) => {
+    if (!val) return;
+    pdf.setFont('helvetica', 'bold'); pdf.text(label + ':', marg, y);
+    pdf.setFont('helvetica', 'normal');
+    const linhas = pdf.splitTextToSize(val, larg - 50);
+    pdf.text(linhas, marg + 52, y);
+    y += linhas.length * 5 + 2;
+    if (y > 270) { pdf.addPage(); y = 20; }
+  });
+
+  // Histórico
+  if (o.historico) {
+    y += 2; pdf.line(marg, y, 210 - marg, y); y += 6;
+    pdf.setFont('helvetica', 'bold'); pdf.text('Histórico:', marg, y); y += 6;
+    pdf.setFont('helvetica', 'normal');
+    const linhas = pdf.splitTextToSize(o.historico, larg);
+    linhas.forEach(l => {
+      pdf.text(l, marg, y); y += 5;
+      if (y > 270) { pdf.addPage(); y = 20; }
+    });
+  }
+
+  // Rodapé
+  y += 6; pdf.line(marg, y, 210 - marg, y); y += 5;
+  pdf.setFontSize(7); pdf.setTextColor(120);
+  pdf.text(`Gerado em ${new Date().toLocaleString('pt-BR')} por ${usuarioAtual?.email || '—'} — SIGROP v1.0`, 105, y, { align: 'center' });
+
+  const nome = `SIGROP_${(o.fato || 'ocorrencia').replace(/\s+/g,'_')}_${o.data || 'sem-data'}.pdf`;
+  pdf.save(nome);
+  toast('PDF exportado com sucesso.', 'ok');
+}
+
+// ─── TEXTO RELATÓRIO ─────────────────────────────────────────────
+function gerarTextoRelatorio(o) {
+  const l = (label, val) => val
+    ? `<strong>${label}:</strong> ${val}\n`
+    : '';
+  return [
+    l('Fato', o.fato),
+    l('Ambiente', o.ambiente),
+    l('Data', fmtData(o.data)),
+    l('Tempo de Resposta', o.tempoResposta),
+    l('Efetivo Empenhado', o.efetivo),
+    l('Endereço', o.endereco),
+    l('Município', o.municipio),
+    l('Socorros de', o.socorro),
+    l('Btl', o.btl), l('Cia', o.cia), l('Pel', o.pel),
+    l('Horário de Serviço', o.horario),
+    l('Unidades Policiais', o.unidadesPol),
+    l('Vtr', o.vtr), l('DP', o.dp),
+    l('Qtd. Vítimas', o.vitimasQtd),
+    l('Qtd. Veículos', o.veiculosQtd),
+    l('Via / Condições', o.via),
+    l('Vítimas em Óbito', o.obito),
+    l('Vítimas Sobreviventes', o.sobreviventes),
+    l('CMT CPA/CPI', o.cmtCpa),
+    l('CMT BTL/INTERINO', o.cmtBtl),
+    l('CMT CIA/INTERINO', o.cmtCiaInt),
+    l('Registro', o.registro),
+    '\n',
+    l('Histórico', o.historico),
+    '\n',
+    l('Autoridades no Local', o.autoridadesLocal),
+    l('Autoridades Cientificadas', o.autoridadesCient),
+    l('Status', o.status),
+  ].join('');
+}
+
+// ─── UTILS ───────────────────────────────────────────────────────
+const v  = id => document.getElementById(id)?.value || '';
+const sv = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+
+function fmtData(d) {
+  if (!d) return '—';
+  const [a, m, dd] = d.split('-');
+  return `${dd}/${m}/${a}`;
+}
+
+function slugStatus(s) {
+  if (!s) return 'em-andamento';
+  return s.toLowerCase().replace(/\s+/g, '-').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+function toast(msg, tipo = 'ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `show ${tipo}`;
+  setTimeout(() => { t.className = ''; }, 3500);
+}
+
+// Fechar modal clicando fora
+document.getElementById('modal-backdrop').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal-backdrop')) fecharModal();
+});
+
+// Enter no login
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('screen-login').style.display !== 'none') {
+    fazerLogin();
+  }
+});
+</script>
+</body>
+</html>
