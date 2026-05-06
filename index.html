@@ -223,7 +223,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3)}
               <select id="f-ambiente" required><option value="">Selecione…</option><option>Rodovia</option><option>Rua</option><option>Casa</option><option>Bar</option><option>Automóvel</option><option>Fábrica</option><option>Área Rural</option><option>Outros</option></select>
             </div>
             <div class="field-group"><label>Data *</label><input type="date" id="f-data" required></div>
-            <div class="field-group"><label>Tempo de Resposta</label><input type="time" id="f-tempo-resposta"></div>
+            <div class="field-group"><label>Horário do Fato</label><input type="time" id="f-tempo-resposta"></div>
             <div class="field-group"><label>Efetivo Empenhado</label><input type="text" id="f-efetivo" placeholder="Ex: 02 PMRv"></div>
           </div>
         </div>
@@ -2882,7 +2882,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3)}
             <div class="field-group"><label>Btl</label><select id="f-btl"><option value="">Selecione…</option></select></div>
             <div class="field-group"><label>Cia</label><select id="f-cia"><option value="">Selecione…</option></select></div>
             <div class="field-group"><label>Pel</label><select id="f-pel"><option value="">Selecione…</option></select></div>
-            <div class="field-group"><label>Horário de Serviço</label><input type="time" id="f-horario"></div>
+            <div class="field-group"><label>Tempo de Resposta</label><input type="time" id="f-horario"></div>
             <div class="field-group"><label>DP</label><input type="text" id="f-dp" placeholder="Ex: 1º DP Araraquara"></div>
           </div>
           <div style="margin-top:14px">
@@ -3060,7 +3060,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3)}
 <option>48</option>
 <option>49</option>
 <option>50</option></select></div>
-              <div class="field-group"><label>Ilesos</label><select id="f-t-ilesos"><option>0</option><option>0</option>
+              <div class="field-group" style="display:none"><label>Ilesos</label><select id="f-t-ilesos"><option>0</option><option>0</option>
 <option>1</option>
 <option>2</option>
 <option>3</option>
@@ -3279,210 +3279,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3)}
           <!-- CRIMINAL -->
           <div class="cat-panel" id="panel-criminal">
             <div class="form-grid">
-              <div class="field-group"><label>Vítimas Fatais</label><select id="f-c-fatais"><option>0</option><option>0</option>
-<option>1</option>
-<option>2</option>
-<option>3</option>
-<option>4</option>
-<option>5</option>
-<option>6</option>
-<option>7</option>
-<option>8</option>
-<option>9</option>
-<option>10</option>
-<option>11</option>
-<option>12</option>
-<option>13</option>
-<option>14</option>
-<option>15</option>
-<option>16</option>
-<option>17</option>
-<option>18</option>
-<option>19</option>
-<option>20</option>
-<option>21</option>
-<option>22</option>
-<option>23</option>
-<option>24</option>
-<option>25</option>
-<option>26</option>
-<option>27</option>
-<option>28</option>
-<option>29</option>
-<option>30</option>
-<option>31</option>
-<option>32</option>
-<option>33</option>
-<option>34</option>
-<option>35</option>
-<option>36</option>
-<option>37</option>
-<option>38</option>
-<option>39</option>
-<option>40</option>
-<option>41</option>
-<option>42</option>
-<option>43</option>
-<option>44</option>
-<option>45</option>
-<option>46</option>
-<option>47</option>
-<option>48</option>
-<option>49</option>
-<option>50</option></select></div>
-              <div class="field-group"><label>Vítimas Graves</label><select id="f-c-graves"><option>0</option><option>0</option>
-<option>1</option>
-<option>2</option>
-<option>3</option>
-<option>4</option>
-<option>5</option>
-<option>6</option>
-<option>7</option>
-<option>8</option>
-<option>9</option>
-<option>10</option>
-<option>11</option>
-<option>12</option>
-<option>13</option>
-<option>14</option>
-<option>15</option>
-<option>16</option>
-<option>17</option>
-<option>18</option>
-<option>19</option>
-<option>20</option>
-<option>21</option>
-<option>22</option>
-<option>23</option>
-<option>24</option>
-<option>25</option>
-<option>26</option>
-<option>27</option>
-<option>28</option>
-<option>29</option>
-<option>30</option>
-<option>31</option>
-<option>32</option>
-<option>33</option>
-<option>34</option>
-<option>35</option>
-<option>36</option>
-<option>37</option>
-<option>38</option>
-<option>39</option>
-<option>40</option>
-<option>41</option>
-<option>42</option>
-<option>43</option>
-<option>44</option>
-<option>45</option>
-<option>46</option>
-<option>47</option>
-<option>48</option>
-<option>49</option>
-<option>50</option></select></div>
-              <div class="field-group"><label>Vítimas Leves</label><select id="f-c-leves"><option>0</option><option>0</option>
-<option>1</option>
-<option>2</option>
-<option>3</option>
-<option>4</option>
-<option>5</option>
-<option>6</option>
-<option>7</option>
-<option>8</option>
-<option>9</option>
-<option>10</option>
-<option>11</option>
-<option>12</option>
-<option>13</option>
-<option>14</option>
-<option>15</option>
-<option>16</option>
-<option>17</option>
-<option>18</option>
-<option>19</option>
-<option>20</option>
-<option>21</option>
-<option>22</option>
-<option>23</option>
-<option>24</option>
-<option>25</option>
-<option>26</option>
-<option>27</option>
-<option>28</option>
-<option>29</option>
-<option>30</option>
-<option>31</option>
-<option>32</option>
-<option>33</option>
-<option>34</option>
-<option>35</option>
-<option>36</option>
-<option>37</option>
-<option>38</option>
-<option>39</option>
-<option>40</option>
-<option>41</option>
-<option>42</option>
-<option>43</option>
-<option>44</option>
-<option>45</option>
-<option>46</option>
-<option>47</option>
-<option>48</option>
-<option>49</option>
-<option>50</option></select></div>
-              <div class="field-group"><label>Ilesos</label><select id="f-c-ilesos"><option>0</option><option>0</option>
-<option>1</option>
-<option>2</option>
-<option>3</option>
-<option>4</option>
-<option>5</option>
-<option>6</option>
-<option>7</option>
-<option>8</option>
-<option>9</option>
-<option>10</option>
-<option>11</option>
-<option>12</option>
-<option>13</option>
-<option>14</option>
-<option>15</option>
-<option>16</option>
-<option>17</option>
-<option>18</option>
-<option>19</option>
-<option>20</option>
-<option>21</option>
-<option>22</option>
-<option>23</option>
-<option>24</option>
-<option>25</option>
-<option>26</option>
-<option>27</option>
-<option>28</option>
-<option>29</option>
-<option>30</option>
-<option>31</option>
-<option>32</option>
-<option>33</option>
-<option>34</option>
-<option>35</option>
-<option>36</option>
-<option>37</option>
-<option>38</option>
-<option>39</option>
-<option>40</option>
-<option>41</option>
-<option>42</option>
-<option>43</option>
-<option>44</option>
-<option>45</option>
-<option>46</option>
-<option>47</option>
-<option>48</option>
-<option>49</option>
-<option>50</option></select></div>
+              <div class="field-group full"><label>Qtd. Vítimas</label><input type="text" id="f-c-vitimas-qtd" placeholder="Ex: 01 vítima fatal, 02 feridos graves"></div>
               <div class="field-group"><label>AP</label><select id="f-c-ap"><option>0</option><option>0</option>
 <option>1</option>
 <option>2</option>
@@ -3648,161 +3445,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3)}
           <!-- MANIFESTAÇÃO -->
           <div class="cat-panel" id="panel-manifestacao">
             <div class="form-grid">
-              <div class="field-group"><label>AP</label><select id="f-m-ap"><option>0</option><option>0</option>
-<option>1</option>
-<option>2</option>
-<option>3</option>
-<option>4</option>
-<option>5</option>
-<option>6</option>
-<option>7</option>
-<option>8</option>
-<option>9</option>
-<option>10</option>
-<option>11</option>
-<option>12</option>
-<option>13</option>
-<option>14</option>
-<option>15</option>
-<option>16</option>
-<option>17</option>
-<option>18</option>
-<option>19</option>
-<option>20</option>
-<option>21</option>
-<option>22</option>
-<option>23</option>
-<option>24</option>
-<option>25</option>
-<option>26</option>
-<option>27</option>
-<option>28</option>
-<option>29</option>
-<option>30</option></select></div>
-              <div class="field-group"><label>Moto</label><select id="f-m-moto"><option>0</option><option>0</option>
-<option>1</option>
-<option>2</option>
-<option>3</option>
-<option>4</option>
-<option>5</option>
-<option>6</option>
-<option>7</option>
-<option>8</option>
-<option>9</option>
-<option>10</option>
-<option>11</option>
-<option>12</option>
-<option>13</option>
-<option>14</option>
-<option>15</option>
-<option>16</option>
-<option>17</option>
-<option>18</option>
-<option>19</option>
-<option>20</option>
-<option>21</option>
-<option>22</option>
-<option>23</option>
-<option>24</option>
-<option>25</option>
-<option>26</option>
-<option>27</option>
-<option>28</option>
-<option>29</option>
-<option>30</option></select></div>
-              <div class="field-group"><label>CA</label><select id="f-m-ca"><option>0</option><option>0</option>
-<option>1</option>
-<option>2</option>
-<option>3</option>
-<option>4</option>
-<option>5</option>
-<option>6</option>
-<option>7</option>
-<option>8</option>
-<option>9</option>
-<option>10</option>
-<option>11</option>
-<option>12</option>
-<option>13</option>
-<option>14</option>
-<option>15</option>
-<option>16</option>
-<option>17</option>
-<option>18</option>
-<option>19</option>
-<option>20</option>
-<option>21</option>
-<option>22</option>
-<option>23</option>
-<option>24</option>
-<option>25</option>
-<option>26</option>
-<option>27</option>
-<option>28</option>
-<option>29</option>
-<option>30</option></select></div>
-              <div class="field-group"><label>OA</label><select id="f-m-oa"><option>0</option><option>0</option>
-<option>1</option>
-<option>2</option>
-<option>3</option>
-<option>4</option>
-<option>5</option>
-<option>6</option>
-<option>7</option>
-<option>8</option>
-<option>9</option>
-<option>10</option>
-<option>11</option>
-<option>12</option>
-<option>13</option>
-<option>14</option>
-<option>15</option>
-<option>16</option>
-<option>17</option>
-<option>18</option>
-<option>19</option>
-<option>20</option>
-<option>21</option>
-<option>22</option>
-<option>23</option>
-<option>24</option>
-<option>25</option>
-<option>26</option>
-<option>27</option>
-<option>28</option>
-<option>29</option>
-<option>30</option></select></div>
-              <div class="field-group"><label>Outros Veículos</label><select id="f-m-outros-veic"><option>0</option><option>0</option>
-<option>1</option>
-<option>2</option>
-<option>3</option>
-<option>4</option>
-<option>5</option>
-<option>6</option>
-<option>7</option>
-<option>8</option>
-<option>9</option>
-<option>10</option>
-<option>11</option>
-<option>12</option>
-<option>13</option>
-<option>14</option>
-<option>15</option>
-<option>16</option>
-<option>17</option>
-<option>18</option>
-<option>19</option>
-<option>20</option>
-<option>21</option>
-<option>22</option>
-<option>23</option>
-<option>24</option>
-<option>25</option>
-<option>26</option>
-<option>27</option>
-<option>28</option>
-<option>29</option>
-<option>30</option></select></div>
+              
               <div class="field-group"><label>Qtd. Manifestantes</label><input type="text" id="f-m-manifestantes" placeholder="Ex: Aprox. 200"></div>
               <div class="field-group full"><label>Motivo da Manifestação</label><input type="text" id="f-m-motivo" placeholder="Ex: Greve, Protesto"></div>
               <div class="field-group"><label>Responsável pela Manifestação</label><input type="text" id="f-m-responsavel" placeholder="Ex: A qualificar"></div>
@@ -4279,14 +3922,14 @@ function coletarDados(){
     horario:gv('f-horario'),dp:gv('f-dp'),
     equipes:coletarEquipes(),
     categoria:categoriaAtual,
-    tFatais:gv('f-t-fatais'),tGraves:gv('f-t-graves'),tLeves:gv('f-t-leves'),tIlesos:gv('f-t-ilesos'),
+    tFatais:gv('f-t-fatais'),tGraves:gv('f-t-graves'),tLeves:gv('f-t-leves'),
     tAP:gv('f-t-ap'),tMoto:gv('f-t-moto'),tCA:gv('f-t-ca'),tOA:gv('f-t-oa'),tOutrosVeic:gv('f-t-outros-veic'),
     tPistaCond:gv('f-t-pista-cond'),tTempo:gv('f-t-tempo'),tPavimento:gv('f-t-pavimento'),
     tTipoSinistro:gv('f-t-tipo-sinistro'),tObito:gv('f-t-obito'),
-    cFatais:gv('f-c-fatais'),cGraves:gv('f-c-graves'),cLeves:gv('f-c-leves'),cIlesos:gv('f-c-ilesos'),
+    cVitimasQtd:gv('f-c-vitimas-qtd'),
     cAP:gv('f-c-ap'),cMoto:gv('f-c-moto'),cCA:gv('f-c-ca'),cOA:gv('f-c-oa'),cOutrosVeic:gv('f-c-outros-veic'),
     cApreendidos:gv('f-c-apreendidos'),cSubtraidos:gv('f-c-subtraidos'),cPressos:gv('f-c-presos'),cArmas:gv('f-c-armas'),
-    mAP:gv('f-m-ap'),mMoto:gv('f-m-moto'),mCA:gv('f-m-ca'),mOA:gv('f-m-oa'),mOutrosVeic:gv('f-m-outros-veic'),
+    
     mManifestantes:gv('f-m-manifestantes'),mMotivo:gv('f-m-motivo'),mResponsavel:gv('f-m-responsavel'),mInterdicao:gv('f-m-interdicao'),
     iMotivo:gv('f-i-motivo'),iKm:gv('f-i-km'),
     cmtCpa:gv('f-cmt-cpa'),cmtBtl:gv('f-cmt-btl'),cmtCiaInt:gv('f-cmt-cia-int'),
@@ -4310,14 +3953,14 @@ function preencherFormulario(o){
   document.querySelectorAll('.cat-tab').forEach((t,i)=>t.classList.toggle('active',cats[i]===cat));
   document.querySelectorAll('.cat-panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('panel-'+cat).classList.add('active');
-  sv('f-t-fatais',o.tFatais);sv('f-t-graves',o.tGraves);sv('f-t-leves',o.tLeves);sv('f-t-ilesos',o.tIlesos);
+  sv('f-t-fatais',o.tFatais);sv('f-t-graves',o.tGraves);sv('f-t-leves',o.tLeves);
   sv('f-t-ap',o.tAP);sv('f-t-moto',o.tMoto);sv('f-t-ca',o.tCA);sv('f-t-oa',o.tOA);sv('f-t-outros-veic',o.tOutrosVeic);
   sv('f-t-pista-cond',o.tPistaCond);sv('f-t-tempo',o.tTempo);sv('f-t-pavimento',o.tPavimento);
   sv('f-t-tipo-sinistro',o.tTipoSinistro);sv('f-t-obito',o.tObito);
-  sv('f-c-fatais',o.cFatais);sv('f-c-graves',o.cGraves);sv('f-c-leves',o.cLeves);sv('f-c-ilesos',o.cIlesos);
+  sv('f-c-vitimas-qtd',o.cVitimasQtd);
   sv('f-c-ap',o.cAP);sv('f-c-moto',o.cMoto);sv('f-c-ca',o.cCA);sv('f-c-oa',o.cOA);sv('f-c-outros-veic',o.cOutrosVeic);
   sv('f-c-apreendidos',o.cApreendidos);sv('f-c-subtraidos',o.cSubtraidos);sv('f-c-presos',o.cPressos);sv('f-c-armas',o.cArmas);
-  sv('f-m-ap',o.mAP);sv('f-m-moto',o.mMoto);sv('f-m-ca',o.mCA);sv('f-m-oa',o.mOA);sv('f-m-outros-veic',o.mOutrosVeic);
+  
   sv('f-m-manifestantes',o.mManifestantes);sv('f-m-motivo',o.mMotivo);sv('f-m-responsavel',o.mResponsavel);sv('f-m-interdicao',o.mInterdicao);
   sv('f-i-motivo',o.iMotivo);sv('f-i-km',o.iKm);
   sv('f-cmt-cpa',o.cmtCpa);sv('f-cmt-btl',o.cmtBtl);sv('f-cmt-cia-int',o.cmtCiaInt);
@@ -4369,24 +4012,24 @@ function exportarPDF(id){
   const catLabel={transito:'Sinistro de Trânsito',criminal:'Criminal',manifestacao:'Manifestação',interdicao:'Interdição de Rodovia'};
   const rows=[
     ['Natureza do Fato',o.fato],['Ambiente',o.ambiente],['Data',fmtData(o.data)],
-    ['Tempo de Resposta',o.tempoResposta],['Efetivo Empenhado',o.efetivo],
+    ['Horário do Fato',o.tempoResposta],['Efetivo Empenhado',o.efetivo],
     ['Rodovia',o.rodovia],['KM',o.km],['Metros',o.metros],['Pista',o.pista],
     ['Município',o.municipio],['Locais de Socorro',o.socorro],
     ['Btl',o.btl],['Cia',o.cia],['Pel',o.pel],
-    ['Horário de Serviço',o.horario],['DP',o.dp],
+    ['Tempo de Resposta',o.horario],['DP',o.dp],
     ['Categoria',catLabel[o.categoria||'transito']],
   ];
   if((o.categoria||'transito')==='transito')rows.push(
-    ['Vítimas Fatais',o.tFatais],['Vítimas Graves',o.tGraves],['Vítimas Leves',o.tLeves],['Ilesos',o.tIlesos],
+    ['Vítimas Fatais',o.tFatais],['Vítimas Graves',o.tGraves],['Vítimas Leves',o.tLeves],
     ['AP',o.tAP],['Moto',o.tMoto],['CA',o.tCA],['OA',o.tOA],['Outros Veículos',o.tOutrosVeic],
     ['Pista',o.tPistaCond],['Tempo',o.tTempo],['Pavimento',o.tPavimento],
     ['Tipo de Sinistro',o.tTipoSinistro],['Vítimas em Óbito',o.tObito]);
   else if(o.categoria==='criminal')rows.push(
-    ['Vítimas Fatais',o.cFatais],['Vítimas Graves',o.cGraves],['Vítimas Leves',o.cLeves],['Ilesos',o.cIlesos],
+    ['Qtd. Vítimas',o.cVitimasQtd],
     ['AP',o.cAP],['Moto',o.cMoto],['CA',o.cCA],['OA',o.cOA],['Outros Veículos',o.cOutrosVeic],
     ['Apreendidos',o.cApreendidos],['Subtraídos',o.cSubtraidos],['Pessoas Presas',o.cPressos],['Armas/Munição',o.cArmas]);
   else if(o.categoria==='manifestacao')rows.push(
-    ['AP',o.mAP],['Moto',o.mMoto],['CA',o.mCA],['OA',o.mOA],['Outros Veículos',o.mOutrosVeic],
+    
     ['Manifestantes',o.mManifestantes],['Motivo',o.mMotivo],['Responsável',o.mResponsavel],['Rodovia Interditada',o.mInterdicao]);
   else if(o.categoria==='interdicao')rows.push(
     ['Motivo da Interdição',o.iMotivo],['Km de Congestionamento',o.iKm]);
@@ -4434,16 +4077,16 @@ function gerarTextoRelatorio(o){
   const catLabel={transito:'🚗 Sinistro de Trânsito',criminal:'⚖️ Criminal',manifestacao:'📢 Manifestação',interdicao:'🚧 Interdição'};
   let txt=[
     l('Natureza do Fato',o.fato),l('Ambiente',o.ambiente),l('Data',fmtData(o.data)),
-    l('Tempo de Resposta',o.tempoResposta),l('Efetivo Empenhado',o.efetivo),
+    l('Horário do Fato',o.tempoResposta),l('Efetivo Empenhado',o.efetivo),
     l('Rodovia',o.rodovia),l('KM',o.km),l('Metros',o.metros),l('Pista',o.pista),
     l('Município',o.municipio),l('Locais de Socorro',o.socorro),
-    l('Btl',o.btl),l('Cia',o.cia),l('Pel',o.pel),l('Horário',o.horario),l('DP',o.dp),'\n',
+    l('Btl',o.btl),l('Cia',o.cia),l('Pel',o.pel),l('Tempo de Resposta',o.horario),l('DP',o.dp),'\n',
     `<strong>— ${catLabel[o.categoria||'transito']} —</strong>\n`,
   ].join('');
   const cat=o.categoria||'transito';
-  if(cat==='transito')txt+=[l('Vítimas Fatais',o.tFatais),l('Vítimas Graves',o.tGraves),l('Vítimas Leves',o.tLeves),l('Ilesos',o.tIlesos),l('AP',o.tAP),l('Moto',o.tMoto),l('CA',o.tCA),l('OA',o.tOA),l('Outros Veíc.',o.tOutrosVeic),l('Pista',o.tPistaCond),l('Tempo',o.tTempo),l('Pavimento',o.tPavimento),l('Tipo de Sinistro',o.tTipoSinistro),l('Vítimas em Óbito',o.tObito)].join('');
-  if(cat==='criminal')txt+=[l('Vítimas Fatais',o.cFatais),l('Vítimas Graves',o.cGraves),l('Vítimas Leves',o.cLeves),l('Ilesos',o.cIlesos),l('AP',o.cAP),l('Moto',o.cMoto),l('CA',o.cCA),l('OA',o.cOA),l('Outros Veíc.',o.cOutrosVeic),l('Apreendidos',o.cApreendidos),l('Subtraídos',o.cSubtraidos),l('Pessoas Presas',o.cPressos),l('Armas/Munição',o.cArmas)].join('');
-  if(cat==='manifestacao')txt+=[l('AP',o.mAP),l('Moto',o.mMoto),l('CA',o.mCA),l('OA',o.mOA),l('Outros Veíc.',o.mOutrosVeic),l('Manifestantes',o.mManifestantes),l('Motivo',o.mMotivo),l('Responsável',o.mResponsavel),l('Rodovia Interditada',o.mInterdicao)].join('');
+  if(cat==='transito')txt+=[l('Vítimas Fatais',o.tFatais),l('Vítimas Graves',o.tGraves),l('Vítimas Leves',o.tLeves),l('AP',o.tAP),l('Moto',o.tMoto),l('CA',o.tCA),l('OA',o.tOA),l('Outros Veíc.',o.tOutrosVeic),l('Pista',o.tPistaCond),l('Tempo',o.tTempo),l('Pavimento',o.tPavimento),l('Tipo de Sinistro',o.tTipoSinistro),l('Vítimas em Óbito',o.tObito)].join('');
+  if(cat==='criminal')txt+=[l('Qtd. Vítimas',o.cVitimasQtd),l('AP',o.cAP),l('Moto',o.cMoto),l('CA',o.cCA),l('OA',o.cOA),l('Outros Veíc.',o.cOutrosVeic),l('Apreendidos',o.cApreendidos),l('Subtraídos',o.cSubtraidos),l('Pessoas Presas',o.cPressos),l('Armas/Munição',o.cArmas)].join('');
+  if(cat==='manifestacao')txt+=[l('Manifestantes',o.mManifestantes),l('Motivo',o.mMotivo),l('Responsável',o.mResponsavel),l('Rodovia Interditada',o.mInterdicao)].join('');
   if(cat==='interdicao')txt+=[l('Motivo',o.iMotivo),l('Km Congestionamento',o.iKm)].join('');
   if(o.equipes&&o.equipes.length){
     txt+='\n<strong>— Equipes —</strong>\n';
