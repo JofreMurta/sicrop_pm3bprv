@@ -80,7 +80,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3)}
 .badge-cancelado{background:rgba(218,54,51,.2);color:var(--danger)}
 .form-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:13px}
 .form-section-title{font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--accent2);margin-bottom:15px;padding-bottom:7px;border-bottom:1px solid var(--border);font-weight:700}
-.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(1px,1fr));gap:11px}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:11px}
 .form-grid .full{grid-column:1/-1}
 .cat-tabs{display:flex;gap:5px;margin-bottom:16px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:3px;scrollbar-width:none}
 .cat-tabs::-webkit-scrollbar{display:none}
@@ -193,29 +193,16 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3)}
 }
 
 
-/* Garante que todos os campos se expandem para preencher a linha */
-.form-card .form-grid,
-.form-card [style*="display:grid"] {
-  align-items: start;
-}
-.form-card .form-grid .field-group,
-.form-card [style*="display:grid"] .field-group {
-  width: 100%;
-  min-width: 0;
-}
-.form-card .form-grid .field-group input,
-.form-card .form-grid .field-group select,
-.form-card .form-grid .field-group textarea,
-.form-card [style*="display:grid"] .field-group input,
-.form-card [style*="display:grid"] .field-group select,
-.form-card [style*="display:grid"] .field-group textarea {
-  width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
-}
-/* Grids de grupos fixos sempre preenchem */
-.form-grid-fixed-3 { grid-template-columns: repeat(3,1fr) !important; }
-.form-grid-fixed-5 { grid-template-columns: repeat(5,1fr) !important; }
+
+
+
+
+
+/* Campos sempre ocupam 100% da célula do grid */
+.field-group { width: 100%; min-width: 0; }
+.field-group input,
+.field-group select,
+.field-group textarea { width: 100%; min-width: 0; box-sizing: border-box; }
 
 </style>
 </head>
