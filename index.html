@@ -3,197 +3,154 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SIGROP — Sistema de Gestão de Relatórios de Ocorrências Policiais</title>
-
-<!-- Firebase SDK -->
+<title>SIGROP v1.2</title>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
-    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { getFirestore, collection, addDoc, getDocs, doc, updateDoc,
-    deleteDoc, onSnapshot, serverTimestamp, query, orderBy }
-    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
+  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
   const firebaseConfig = {
-    apiKey: "AIzaSyAncqRwVPRSGmIjqJDgMLpdhzO1NCdnQ48",
-    authDomain: "sigrop-pm3bprv.firebaseapp.com",
-    projectId: "sigrop-pm3bprv",
-    storageBucket: "sigrop-pm3bprv.firebasestorage.app",
-    messagingSenderId: "917385998714",
-    appId: "1:917385998714:web:b4983ade086420461ae6c3"
+    apiKey:"AIzaSyAncqRwVPRSGmIjqJDgMLpdhzO1NCdnQ48",
+    authDomain:"sigrop-pm3bprv.firebaseapp.com",
+    projectId:"sigrop-pm3bprv",
+    storageBucket:"sigrop-pm3bprv.firebasestorage.app",
+    messagingSenderId:"917385998714",
+    appId:"1:917385998714:web:b4983ade086420461ae6c3"
   };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-
-  window._sigrop = { auth, db, signInWithEmailAndPassword, signOut,
-    onAuthStateChanged, collection, addDoc, getDocs, doc, updateDoc,
-    deleteDoc, onSnapshot, serverTimestamp, query, orderBy };
+  const app=initializeApp(firebaseConfig);
+  const auth=getAuth(app);
+  const db=getFirestore(app);
+  window._sigrop={auth,db,signInWithEmailAndPassword,signOut,onAuthStateChanged,collection,addDoc,doc,updateDoc,deleteDoc,onSnapshot,serverTimestamp,query,orderBy};
 </script>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
 <style>
-  :root {
-    --bg:#0d1117; --bg2:#161b22; --bg3:#21262d; --border:#30363d;
-    --accent:#1f6feb; --accent2:#388bfd; --danger:#da3633;
-    --success:#238636; --warn:#d29922;
-    --txt:#e6edf3; --txt2:#8b949e; --txt3:#6e7681;
-    --radius:8px;
-    --font-mono:'JetBrains Mono','Courier New',monospace;
-    --font-ui:'IBM Plex Sans','Segoe UI',sans-serif;
-  }
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  body{background:var(--bg);color:var(--txt);font-family:var(--font-ui);font-size:14px;min-height:100vh;line-height:1.6}
-  ::-webkit-scrollbar{width:6px} ::-webkit-scrollbar-track{background:var(--bg)} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-
-  /* LOGIN */
-  #screen-login{display:flex;align-items:center;justify-content:center;min-height:100vh;background:radial-gradient(ellipse at 30% 40%,#0d2847 0%,var(--bg) 60%)}
-  .login-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:48px 40px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.6)}
-  .login-logo{text-align:center;margin-bottom:32px}
-  .login-logo .sigla{font-family:var(--font-mono);font-size:28px;font-weight:500;color:var(--accent2);letter-spacing:4px}
-  .login-logo .nome{font-size:11px;color:var(--txt3);letter-spacing:2px;text-transform:uppercase;margin-top:4px}
-  .login-logo .brasao{font-size:40px;margin-bottom:12px}
-
-  /* CAMPOS */
-  .field-group{margin-bottom:16px}
-  .field-group label{display:block;font-size:12px;color:var(--txt2);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px}
-  .field-group input,.field-group select,.field-group textarea{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--txt);padding:10px 12px;font-family:var(--font-ui);font-size:14px;outline:none;transition:border-color .2s}
-  .field-group input:focus,.field-group select:focus,.field-group textarea:focus{border-color:var(--accent)}
-  .field-group textarea{resize:vertical;min-height:100px}
-  .field-group select option{background:var(--bg3)}
-
-  /* BOTÕES */
-  .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:var(--radius);font-family:var(--font-ui);font-size:14px;font-weight:500;cursor:pointer;border:none;transition:all .2s}
-  .btn-primary{background:var(--accent);color:#fff} .btn-primary:hover{background:var(--accent2)}
-  .btn-danger{background:var(--danger);color:#fff} .btn-danger:hover{filter:brightness(1.15)}
-  .btn-success{background:var(--success);color:#fff} .btn-success:hover{filter:brightness(1.15)}
-  .btn-ghost{background:transparent;color:var(--txt2);border:1px solid var(--border)} .btn-ghost:hover{background:var(--bg3);color:var(--txt)}
-  .btn-warn{background:var(--warn);color:#000}
-  .btn-full{width:100%;justify-content:center}
-  #login-error{color:var(--danger);font-size:12px;margin-top:8px;min-height:18px}
-
-  /* LAYOUT */
-  #screen-app{display:none}
-  .topbar{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:56px;position:sticky;top:0;z-index:100}
-  .topbar-brand{font-family:var(--font-mono);font-size:16px;font-weight:500;color:var(--accent2);letter-spacing:3px}
-  .topbar-user{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--txt2)}
-  .topbar-unit{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:12px;color:var(--txt2)}
-  .nav-tabs{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;padding:0 24px}
-  .nav-tab{padding:12px 20px;cursor:pointer;font-size:13px;color:var(--txt2);border-bottom:2px solid transparent;transition:all .2s;display:flex;align-items:center;gap:6px}
-  .nav-tab:hover{color:var(--txt)} .nav-tab.active{color:var(--accent2);border-bottom-color:var(--accent2)}
-  .main-content{padding:24px;max-width:1200px;margin:0 auto}
-  .screen{display:none} .screen.active{display:block}
-
-  /* LISTAGEM */
-  .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
-  .page-title{font-size:18px;font-weight:600} .page-subtitle{font-size:13px;color:var(--txt3);margin-top:2px}
-  .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px}
-  .stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px}
-  .stat-card .val{font-size:28px;font-weight:600;font-family:var(--font-mono);color:var(--accent2)}
-  .stat-card .lbl{font-size:12px;color:var(--txt3);margin-top:4px}
-  .filter-bar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
-  .filter-bar input,.filter-bar select{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);color:var(--txt);padding:8px 12px;font-family:var(--font-ui);font-size:13px;outline:none}
-  .filter-bar input{flex:1;min-width:200px}
-  .table-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
-  table{width:100%;border-collapse:collapse} thead{background:var(--bg3)}
-  th{padding:10px 14px;text-align:left;font-size:11px;color:var(--txt3);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border)}
-  td{padding:12px 14px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle}
-  tr:last-child td{border-bottom:none} tr:hover td{background:var(--bg3)}
-  .badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:500}
-  .badge-em-andamento{background:rgba(210,153,34,.2);color:var(--warn)}
-  .badge-concluido{background:rgba(35,134,54,.2);color:var(--success)}
-  .badge-cancelado{background:rgba(218,54,51,.2);color:var(--danger)}
-
-  /* FORMULÁRIO */
-  .form-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:28px;margin-bottom:16px}
-  .form-section-title{font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--accent2);margin-bottom:18px;padding-bottom:8px;border-bottom:1px solid var(--border)}
-  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
-  .form-grid .full{grid-column:1/-1}
-
-  /* CATEGORIA */
-  .cat-tabs{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap}
-  .cat-tab{padding:8px 16px;border-radius:var(--radius);font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--txt2);transition:all .2s}
-  .cat-tab:hover{color:var(--txt);border-color:var(--accent)}
-  .cat-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-  .cat-panel{display:none} .cat-panel.active{display:block}
-
-  /* ADMIN */
-  .admin-section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:16px}
-  .admin-section h3{font-size:14px;font-weight:600;margin-bottom:16px;color:var(--txt2)}
-  .list-manage{list-style:none;display:flex;flex-direction:column;gap:8px}
-  .list-manage li{display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;font-size:13px}
-  .list-manage li.inativo{opacity:.45;text-decoration:line-through}
-  .list-manage li .actions{display:flex;gap:6px}
-
-  /* MODAL */
-  .modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center}
-  .modal-backdrop.open{display:flex}
-  .modal{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:28px;width:100%;max-width:680px;max-height:90vh;overflow-y:auto;margin:16px}
-  .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
-  .modal-title{font-size:16px;font-weight:600}
-  .modal-close{background:none;border:none;color:var(--txt2);font-size:20px;cursor:pointer;line-height:1;padding:4px 8px;border-radius:4px}
-  .modal-close:hover{background:var(--bg3);color:var(--txt)}
-  .report-view{background:var(--bg3);border-radius:var(--radius);padding:20px;font-family:var(--font-mono);font-size:13px;line-height:1.8;white-space:pre-wrap;color:var(--txt)}
-  .report-view strong{color:var(--accent2)}
-
-  /* TOAST */
-  #toast{position:fixed;bottom:24px;right:24px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 20px;font-size:13px;z-index:300;transform:translateY(80px);opacity:0;transition:all .3s;display:flex;align-items:center;gap:10px}
-  #toast.show{transform:translateY(0);opacity:1}
-  #toast.ok{border-left:3px solid var(--success)} #toast.err{border-left:3px solid var(--danger)}
-
-  .empty{text-align:center;padding:60px 20px;color:var(--txt3)}
-  .empty .icon{font-size:48px;margin-bottom:12px}
-  .spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent2);border-radius:50%;animation:spin .6s linear infinite}
-  @keyframes spin{to{transform:rotate(360deg)}}
-
-  @media(max-width:768px){
-    .login-card{padding:32px 20px;margin:16px}
-    .topbar{padding:0 12px;height:52px}
-    .topbar-brand{font-size:13px;letter-spacing:2px}
-    .topbar-unit{max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px}
-    .nav-tabs{padding:0 8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-    .nav-tabs::-webkit-scrollbar{display:none}
-    .nav-tab{padding:10px 12px;font-size:12px;white-space:nowrap;flex-shrink:0}
-    .main-content{padding:12px}
-    .page-header{flex-direction:column;align-items:flex-start;gap:10px}
-    .page-header>.btn{width:100%;justify-content:center}
-    .stats-row{grid-template-columns:repeat(3,1fr);gap:8px}
-    .stat-card{padding:10px 12px}
-    .stat-card .val{font-size:20px}
-    .stat-card .lbl{font-size:10px}
-    .filter-bar{flex-direction:column}
-    .filter-bar input,.filter-bar select{width:100%;min-width:unset}
-    .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-    table{min-width:580px}
-    th,td{padding:8px 10px;font-size:12px}
-    .form-card{padding:16px 14px}
-    .form-grid{grid-template-columns:1fr !important}
-    .form-grid .full{grid-column:1 !important}
-    .cat-tabs{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;scrollbar-width:none;gap:4px}
-    .cat-tabs::-webkit-scrollbar{display:none}
-    .cat-tab{white-space:nowrap;flex-shrink:0;padding:8px 10px;font-size:11px}
-    .admin-section{padding:14px}
-    .list-manage li{flex-direction:column;align-items:flex-start;gap:8px}
-    .list-manage li .actions{width:100%;justify-content:flex-end}
-    .modal{padding:16px;margin:8px;max-height:96vh}
-    #modal-actions{flex-direction:column;gap:8px}
-    #modal-actions .btn{width:100%;justify-content:center}
-    #toast{left:12px;right:12px;bottom:12px}
-    .btn{min-height:44px}
-    td .btn,.list-manage .btn{min-height:36px;padding:6px 10px;font-size:11px}
-  }
-  @media(max-width:400px){
-    .stats-row{grid-template-columns:1fr 1fr}
-    .topbar-brand{font-size:11px;letter-spacing:1px}
-  }
+:root{--bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--border:#30363d;--accent:#1f6feb;--accent2:#388bfd;--danger:#da3633;--success:#238636;--warn:#d29922;--txt:#e6edf3;--txt2:#8b949e;--txt3:#6e7681;--radius:8px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',sans-serif;font-size:14px;min-height:100vh;line-height:1.6}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+#screen-login{display:flex;align-items:center;justify-content:center;min-height:100vh;background:radial-gradient(ellipse at 30% 40%,#0d2847 0%,var(--bg) 60%)}
+.login-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:40px 32px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.6)}
+.login-logo{text-align:center;margin-bottom:28px}
+.login-logo .sigla{font-family:'Courier New',monospace;font-size:26px;font-weight:700;color:var(--accent2);letter-spacing:4px}
+.login-logo .nome{font-size:10px;color:var(--txt3);letter-spacing:2px;text-transform:uppercase;margin-top:4px}
+.login-logo .brasao{font-size:38px;margin-bottom:10px}
+.field-group{margin-bottom:13px}
+.field-group label{display:block;font-size:11px;color:var(--txt2);margin-bottom:5px;text-transform:uppercase;letter-spacing:1px;font-weight:600}
+.field-group input,.field-group select,.field-group textarea{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--txt);padding:10px 12px;font-family:'Segoe UI',sans-serif;font-size:14px;outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none}
+.field-group input:focus,.field-group select:focus,.field-group textarea:focus{border-color:var(--accent)}
+.field-group textarea{resize:vertical;min-height:100px}
+.field-group select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%238b949e' d='M5 6L0 0h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:30px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 16px;border-radius:var(--radius);font-family:'Segoe UI',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .2s;min-height:42px;white-space:nowrap}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent2)}
+.btn-danger{background:var(--danger);color:#fff}.btn-danger:hover{filter:brightness(1.15)}
+.btn-success{background:var(--success);color:#fff}.btn-success:hover{filter:brightness(1.15)}
+.btn-ghost{background:transparent;color:var(--txt2);border:1px solid var(--border)}.btn-ghost:hover{background:var(--bg3);color:var(--txt)}
+.btn-warn{background:var(--warn);color:#000}
+.btn-sm{min-height:34px;padding:5px 11px;font-size:12px}
+.btn-full{width:100%}
+#login-error{color:var(--danger);font-size:12px;margin-top:6px;min-height:16px}
+#screen-app{display:none}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 18px;height:52px;position:sticky;top:0;z-index:100}
+.topbar-brand{font-family:'Courier New',monospace;font-size:14px;font-weight:700;color:var(--accent2);letter-spacing:3px}
+.topbar-user{display:flex;align-items:center;gap:10px}
+.topbar-unit{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-size:11px;color:var(--txt2);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav-tabs{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;padding:0 14px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.nav-tabs::-webkit-scrollbar{display:none}
+.nav-tab{padding:11px 15px;cursor:pointer;font-size:13px;color:var(--txt2);border-bottom:2px solid transparent;transition:all .2s;display:flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0}
+.nav-tab:hover{color:var(--txt)}.nav-tab.active{color:var(--accent2);border-bottom-color:var(--accent2)}
+.main-content{padding:18px;max-width:1200px;margin:0 auto}
+.screen{display:none}.screen.active{display:block}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;gap:10px;flex-wrap:wrap}
+.page-title{font-size:17px;font-weight:700}.page-subtitle{font-size:12px;color:var(--txt3);margin-top:2px}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:13px 16px}
+.stat-card .val{font-size:24px;font-weight:700;font-family:'Courier New',monospace;color:var(--accent2)}
+.stat-card .lbl{font-size:11px;color:var(--txt3);margin-top:2px}
+.filter-bar{display:flex;gap:8px;margin-bottom:13px;flex-wrap:wrap}
+.filter-bar input,.filter-bar select{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);color:var(--txt);padding:8px 12px;font-size:13px;outline:none;-webkit-appearance:none;appearance:none}
+.filter-bar input{flex:1;min-width:160px}
+.table-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;min-width:560px}
+thead{background:var(--bg3)}
+th{padding:9px 11px;text-align:left;font-size:11px;color:var(--txt3);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:10px 11px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3)}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-em-andamento{background:rgba(210,153,34,.2);color:var(--warn)}
+.badge-concluido{background:rgba(35,134,54,.2);color:var(--success)}
+.badge-cancelado{background:rgba(218,54,51,.2);color:var(--danger)}
+.form-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:13px}
+.form-section-title{font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--accent2);margin-bottom:15px;padding-bottom:7px;border-bottom:1px solid var(--border);font-weight:700}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:11px}
+.form-grid .full{grid-column:1/-1}
+.cat-tabs{display:flex;gap:5px;margin-bottom:16px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:3px;scrollbar-width:none}
+.cat-tabs::-webkit-scrollbar{display:none}
+.cat-tab{padding:7px 13px;border-radius:var(--radius);font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--txt2);transition:all .2s;white-space:nowrap;flex-shrink:0;min-height:34px}
+.cat-tab:hover{color:var(--txt);border-color:var(--accent)}
+.cat-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.cat-panel{display:none}.cat-panel.active{display:block}
+.equipes-container{display:flex;flex-direction:column;gap:11px;margin-top:8px}
+.equipe-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.equipe-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
+.equipe-titulo{font-size:11px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:1px}
+.equipe-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px}
+.admin-section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:13px}
+.admin-section h3{font-size:13px;font-weight:700;margin-bottom:13px;color:var(--txt2)}
+.list-manage{list-style:none;display:flex;flex-direction:column;gap:7px}
+.list-manage li{display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:9px 12px;font-size:13px;gap:8px}
+.list-manage li.inativo{opacity:.4;text-decoration:line-through}
+.list-manage li .actions{display:flex;gap:5px;flex-shrink:0}
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center}
+.modal-backdrop.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:22px;width:100%;max-width:700px;max-height:92vh;overflow-y:auto;margin:10px}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.modal-title{font-size:15px;font-weight:700}
+.modal-close{background:none;border:none;color:var(--txt2);font-size:20px;cursor:pointer;padding:4px 8px;border-radius:4px;line-height:1}
+.modal-close:hover{background:var(--bg3);color:var(--txt)}
+.report-view{background:var(--bg3);border-radius:var(--radius);padding:16px;font-family:'Courier New',monospace;font-size:12px;line-height:1.9;white-space:pre-wrap;color:var(--txt)}
+.report-view strong{color:var(--accent2)}
+#toast{position:fixed;bottom:18px;right:18px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:11px 16px;font-size:13px;z-index:300;transform:translateY(80px);opacity:0;transition:all .3s;max-width:300px}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.ok{border-left:3px solid var(--success)}#toast.err{border-left:3px solid var(--danger)}
+.empty{text-align:center;padding:44px 20px;color:var(--txt3)}
+.empty .icon{font-size:36px;margin-bottom:8px}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent2);border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:768px){
+  .login-card{padding:26px 16px;margin:10px}
+  .topbar{padding:0 10px;height:48px}
+  .topbar-brand{font-size:11px;letter-spacing:2px}
+  .topbar-unit{max-width:110px;font-size:10px}
+  .main-content{padding:10px}
+  .page-header{flex-direction:column;align-items:stretch}
+  .page-header .btn{width:100%}
+  .stats-row{grid-template-columns:repeat(3,1fr);gap:6px}
+  .stat-card{padding:9px 10px}
+  .stat-card .val{font-size:18px}
+  .stat-card .lbl{font-size:9px}
+  .filter-bar{flex-direction:column}
+  .filter-bar input,.filter-bar select{width:100%;min-width:unset}
+  .form-card{padding:13px 11px}
+  .form-grid{grid-template-columns:1fr !important}
+  .form-grid .full{grid-column:1 !important}
+  .equipe-grid{grid-template-columns:1fr}
+  .admin-section{padding:13px}
+  .list-manage li{flex-direction:column;align-items:flex-start}
+  .list-manage li .actions{width:100%;justify-content:flex-end}
+  .modal{padding:13px;margin:5px;max-height:96vh}
+  #modal-actions{flex-direction:column;gap:7px}
+  #modal-actions .btn{width:100%}
+  #toast{left:10px;right:10px;bottom:10px;max-width:unset}
+  .btn{min-height:44px}
+  .btn-sm{min-height:36px}
+}
+@media(max-width:400px){
+  .stats-row{grid-template-columns:1fr 1fr}
+  .topbar-brand{font-size:10px}
+}
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
 <div id="screen-login">
   <div class="login-card">
     <div class="login-logo">
@@ -201,73 +158,50 @@
       <div class="sigla">SIGROP</div>
       <div class="nome">Sistema de Gestão de Relatórios de Ocorrências Policiais</div>
     </div>
-    <div class="field-group">
-      <label>Unidade / Usuário</label>
-      <input type="email" id="login-email" placeholder="unidade@pm.sp.gov.br" autocomplete="username">
-    </div>
-    <div class="field-group">
-      <label>Senha</label>
-      <input type="password" id="login-senha" placeholder="••••••••" autocomplete="current-password">
-    </div>
+    <div class="field-group"><label>Unidade / Usuário</label><input type="email" id="login-email" placeholder="unidade@pm.sp.gov.br" autocomplete="username"></div>
+    <div class="field-group"><label>Senha</label><input type="password" id="login-senha" placeholder="••••••••" autocomplete="current-password"></div>
     <div id="login-error"></div>
-    <button class="btn btn-primary btn-full" style="margin-top:16px" onclick="fazerLogin()">
-      <span id="btn-login-txt">Acessar Sistema</span>
-    </button>
-    <p style="text-align:center;margin-top:16px;font-size:12px;color:var(--txt3)">SIGROP v1.1 — Acesso restrito</p>
+    <button class="btn btn-primary btn-full" style="margin-top:14px" onclick="fazerLogin()"><span id="btn-login-txt">Acessar Sistema</span></button>
+    <p style="text-align:center;margin-top:12px;font-size:11px;color:var(--txt3)">SIGROP v1.2 — Acesso restrito</p>
   </div>
 </div>
 
-<!-- APP -->
 <div id="screen-app">
   <div class="topbar">
     <span class="topbar-brand">🛡️ SIGROP</span>
     <div class="topbar-user">
       <span class="topbar-unit" id="user-unit">—</span>
-      <button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="fazerLogout()">Sair</button>
+      <button class="btn btn-ghost btn-sm" onclick="fazerLogout()">Sair</button>
     </div>
   </div>
   <div class="nav-tabs">
     <div class="nav-tab active" onclick="irPara('listagem')" id="tab-listagem">📋 Ocorrências</div>
-    <div class="nav-tab" onclick="irPara('nova')" id="tab-nova">➕ Nova Ocorrência</div>
-    <div class="nav-tab" id="tab-admin" onclick="irPara('admin')" style="display:none">⚙️ Administração</div>
+    <div class="nav-tab" onclick="irPara('nova')" id="tab-nova">➕ Nova</div>
+    <div class="nav-tab" id="tab-admin" onclick="irPara('admin')" style="display:none">⚙️ Admin</div>
   </div>
-
   <div class="main-content">
 
     <!-- LISTAGEM -->
     <div class="screen active" id="screen-listagem">
       <div class="page-header">
-        <div>
-          <div class="page-title">Ocorrências Registradas</div>
-          <div class="page-subtitle">Atualização em tempo real</div>
-        </div>
+        <div><div class="page-title">Ocorrências Registradas</div><div class="page-subtitle">Atualização em tempo real</div></div>
         <button class="btn btn-primary" onclick="irPara('nova')">➕ Nova Ocorrência</button>
       </div>
       <div class="stats-row">
-        <div class="stat-card"><div class="val" id="stat-total">0</div><div class="lbl">Total de Ocorrências</div></div>
+        <div class="stat-card"><div class="val" id="stat-total">0</div><div class="lbl">Total</div></div>
         <div class="stat-card"><div class="val" id="stat-andamento">0</div><div class="lbl">Em Andamento</div></div>
-        <div class="stat-card"><div class="val" id="stat-hoje">0</div><div class="lbl">Registradas Hoje</div></div>
+        <div class="stat-card"><div class="val" id="stat-hoje">0</div><div class="lbl">Hoje</div></div>
       </div>
       <div class="filter-bar">
-        <input type="text" id="filtro-busca" placeholder="🔍 Buscar por natureza, município, endereço…" oninput="filtrarOcorrencias()">
-        <select id="filtro-status" onchange="filtrarOcorrencias()">
-          <option value="">Todos os status</option>
-          <option>Em andamento</option>
-          <option>Concluído</option>
-          <option>Cancelado</option>
+        <input type="text" id="filtro-busca" placeholder="🔍 Buscar…" oninput="filtrarOcorrencias()">
+        <select id="filtro-status" onchange="filtrarOcorrencias()" style="min-width:150px">
+          <option value="">Todos os status</option><option>Em andamento</option><option>Concluído</option><option>Cancelado</option>
         </select>
       </div>
       <div class="table-wrap">
         <table>
-          <thead>
-            <tr>
-              <th>Data</th><th>Natureza do Fato</th><th>Município</th>
-              <th>Endereço</th><th>Efetivo</th><th>Status</th><th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="tabela-ocorrencias">
-            <tr><td colspan="7"><div class="empty"><div class="icon">📄</div><p>Carregando ocorrências…</p></div></td></tr>
-          </tbody>
+          <thead><tr><th>Data</th><th>Natureza</th><th>Município</th><th>Rodovia/KM</th><th>Status</th><th>Ações</th></tr></thead>
+          <tbody id="tabela-ocorrencias"><tr><td colspan="6"><div class="empty"><div class="icon">📄</div><p>Carregando…</p></div></td></tr></tbody>
         </table>
       </div>
     </div>
@@ -275,46 +209,22 @@
     <!-- NOVA OCORRÊNCIA -->
     <div class="screen" id="screen-nova">
       <div class="page-header">
-        <div>
-          <div class="page-title" id="form-titulo">Nova Ocorrência</div>
-          <div class="page-subtitle" id="form-subtitulo">Preencha todos os campos obrigatórios</div>
-        </div>
-        <button class="btn btn-ghost" onclick="irPara('listagem')">← Voltar</button>
+        <div><div class="page-title" id="form-titulo">Nova Ocorrência</div><div class="page-subtitle" id="form-subtitulo">Preencha os campos obrigatórios</div></div>
+        <button class="btn btn-ghost btn-sm" onclick="irPara('listagem')">← Voltar</button>
       </div>
-
       <form id="form-ocorrencia" onsubmit="salvarOcorrencia(event)">
 
         <!-- IDENTIFICAÇÃO -->
         <div class="form-card">
-          <div class="form-section-title">📌 Identificação da Ocorrência</div>
+          <div class="form-section-title">📌 Identificação</div>
           <div class="form-grid">
-            <div class="field-group full">
-              <label>Natureza do Fato *</label>
-              <select id="f-fato" required>
-                <option value="">Selecione a natureza do fato…</option>
-              </select>
+            <div class="field-group full"><label>Natureza do Fato *</label><select id="f-fato" required><option value="">Selecione…</option></select></div>
+            <div class="field-group"><label>Ambiente *</label>
+              <select id="f-ambiente" required><option value="">Selecione…</option><option>Rodovia</option><option>Rua</option><option>Casa</option><option>Bar</option><option>Automóvel</option><option>Fábrica</option><option>Área Rural</option><option>Outros</option></select>
             </div>
-            <div class="field-group">
-              <label>Ambiente *</label>
-              <select id="f-ambiente" required>
-                <option value="">Selecione…</option>
-                <option>Rodovia</option><option>Rua</option><option>Casa</option>
-                <option>Bar</option><option>Automóvel</option><option>Fábrica</option>
-                <option>Área Rural</option><option>Outros</option>
-              </select>
-            </div>
-            <div class="field-group">
-              <label>Data *</label>
-              <input type="date" id="f-data" required>
-            </div>
-            <div class="field-group">
-              <label>Tempo de Resposta</label>
-              <input type="text" id="f-tempo-resposta" placeholder="Ex: 01h30min">
-            </div>
-            <div class="field-group">
-              <label>Efetivo Empenhado</label>
-              <input type="text" id="f-efetivo" placeholder="Ex: 02 PMRv">
-            </div>
+            <div class="field-group"><label>Data *</label><input type="date" id="f-data" required></div>
+            <div class="field-group"><label>Tempo de Resposta</label><input type="time" id="f-tempo-resposta"></div>
+            <div class="field-group"><label>Efetivo Empenhado</label><input type="text" id="f-efetivo" placeholder="Ex: 02 PMRv"></div>
           </div>
         </div>
 
@@ -322,53 +232,2665 @@
         <div class="form-card">
           <div class="form-section-title">📍 Localização</div>
           <div class="form-grid">
-            <div class="field-group full">
-              <label>Endereço *</label>
-              <input type="text" id="f-endereco" required placeholder="Logradouro completo, KM, referência…">
-            </div>
-            <div class="field-group">
-              <label>Município *</label>
-              <input type="text" id="f-municipio" required placeholder="Cidade – UF">
-            </div>
-            <div class="field-group">
-              <label>Locais de Socorro</label>
-              <input type="text" id="f-socorro" placeholder="Ex: Pronto-Socorro de…">
-            </div>
+            <div class="field-group"><label>SP / SPA / SPI / SPD *</label><select id="f-rodovia" required><option value="">Selecione…</option></select></div>
+            <div class="field-group"><label>KM</label><select id="f-km"><option value="">---</option><option>000</option>
+<option>001</option>
+<option>002</option>
+<option>003</option>
+<option>004</option>
+<option>005</option>
+<option>006</option>
+<option>007</option>
+<option>008</option>
+<option>009</option>
+<option>010</option>
+<option>011</option>
+<option>012</option>
+<option>013</option>
+<option>014</option>
+<option>015</option>
+<option>016</option>
+<option>017</option>
+<option>018</option>
+<option>019</option>
+<option>020</option>
+<option>021</option>
+<option>022</option>
+<option>023</option>
+<option>024</option>
+<option>025</option>
+<option>026</option>
+<option>027</option>
+<option>028</option>
+<option>029</option>
+<option>030</option>
+<option>031</option>
+<option>032</option>
+<option>033</option>
+<option>034</option>
+<option>035</option>
+<option>036</option>
+<option>037</option>
+<option>038</option>
+<option>039</option>
+<option>040</option>
+<option>041</option>
+<option>042</option>
+<option>043</option>
+<option>044</option>
+<option>045</option>
+<option>046</option>
+<option>047</option>
+<option>048</option>
+<option>049</option>
+<option>050</option>
+<option>051</option>
+<option>052</option>
+<option>053</option>
+<option>054</option>
+<option>055</option>
+<option>056</option>
+<option>057</option>
+<option>058</option>
+<option>059</option>
+<option>060</option>
+<option>061</option>
+<option>062</option>
+<option>063</option>
+<option>064</option>
+<option>065</option>
+<option>066</option>
+<option>067</option>
+<option>068</option>
+<option>069</option>
+<option>070</option>
+<option>071</option>
+<option>072</option>
+<option>073</option>
+<option>074</option>
+<option>075</option>
+<option>076</option>
+<option>077</option>
+<option>078</option>
+<option>079</option>
+<option>080</option>
+<option>081</option>
+<option>082</option>
+<option>083</option>
+<option>084</option>
+<option>085</option>
+<option>086</option>
+<option>087</option>
+<option>088</option>
+<option>089</option>
+<option>090</option>
+<option>091</option>
+<option>092</option>
+<option>093</option>
+<option>094</option>
+<option>095</option>
+<option>096</option>
+<option>097</option>
+<option>098</option>
+<option>099</option>
+<option>100</option>
+<option>101</option>
+<option>102</option>
+<option>103</option>
+<option>104</option>
+<option>105</option>
+<option>106</option>
+<option>107</option>
+<option>108</option>
+<option>109</option>
+<option>110</option>
+<option>111</option>
+<option>112</option>
+<option>113</option>
+<option>114</option>
+<option>115</option>
+<option>116</option>
+<option>117</option>
+<option>118</option>
+<option>119</option>
+<option>120</option>
+<option>121</option>
+<option>122</option>
+<option>123</option>
+<option>124</option>
+<option>125</option>
+<option>126</option>
+<option>127</option>
+<option>128</option>
+<option>129</option>
+<option>130</option>
+<option>131</option>
+<option>132</option>
+<option>133</option>
+<option>134</option>
+<option>135</option>
+<option>136</option>
+<option>137</option>
+<option>138</option>
+<option>139</option>
+<option>140</option>
+<option>141</option>
+<option>142</option>
+<option>143</option>
+<option>144</option>
+<option>145</option>
+<option>146</option>
+<option>147</option>
+<option>148</option>
+<option>149</option>
+<option>150</option>
+<option>151</option>
+<option>152</option>
+<option>153</option>
+<option>154</option>
+<option>155</option>
+<option>156</option>
+<option>157</option>
+<option>158</option>
+<option>159</option>
+<option>160</option>
+<option>161</option>
+<option>162</option>
+<option>163</option>
+<option>164</option>
+<option>165</option>
+<option>166</option>
+<option>167</option>
+<option>168</option>
+<option>169</option>
+<option>170</option>
+<option>171</option>
+<option>172</option>
+<option>173</option>
+<option>174</option>
+<option>175</option>
+<option>176</option>
+<option>177</option>
+<option>178</option>
+<option>179</option>
+<option>180</option>
+<option>181</option>
+<option>182</option>
+<option>183</option>
+<option>184</option>
+<option>185</option>
+<option>186</option>
+<option>187</option>
+<option>188</option>
+<option>189</option>
+<option>190</option>
+<option>191</option>
+<option>192</option>
+<option>193</option>
+<option>194</option>
+<option>195</option>
+<option>196</option>
+<option>197</option>
+<option>198</option>
+<option>199</option>
+<option>200</option>
+<option>201</option>
+<option>202</option>
+<option>203</option>
+<option>204</option>
+<option>205</option>
+<option>206</option>
+<option>207</option>
+<option>208</option>
+<option>209</option>
+<option>210</option>
+<option>211</option>
+<option>212</option>
+<option>213</option>
+<option>214</option>
+<option>215</option>
+<option>216</option>
+<option>217</option>
+<option>218</option>
+<option>219</option>
+<option>220</option>
+<option>221</option>
+<option>222</option>
+<option>223</option>
+<option>224</option>
+<option>225</option>
+<option>226</option>
+<option>227</option>
+<option>228</option>
+<option>229</option>
+<option>230</option>
+<option>231</option>
+<option>232</option>
+<option>233</option>
+<option>234</option>
+<option>235</option>
+<option>236</option>
+<option>237</option>
+<option>238</option>
+<option>239</option>
+<option>240</option>
+<option>241</option>
+<option>242</option>
+<option>243</option>
+<option>244</option>
+<option>245</option>
+<option>246</option>
+<option>247</option>
+<option>248</option>
+<option>249</option>
+<option>250</option>
+<option>251</option>
+<option>252</option>
+<option>253</option>
+<option>254</option>
+<option>255</option>
+<option>256</option>
+<option>257</option>
+<option>258</option>
+<option>259</option>
+<option>260</option>
+<option>261</option>
+<option>262</option>
+<option>263</option>
+<option>264</option>
+<option>265</option>
+<option>266</option>
+<option>267</option>
+<option>268</option>
+<option>269</option>
+<option>270</option>
+<option>271</option>
+<option>272</option>
+<option>273</option>
+<option>274</option>
+<option>275</option>
+<option>276</option>
+<option>277</option>
+<option>278</option>
+<option>279</option>
+<option>280</option>
+<option>281</option>
+<option>282</option>
+<option>283</option>
+<option>284</option>
+<option>285</option>
+<option>286</option>
+<option>287</option>
+<option>288</option>
+<option>289</option>
+<option>290</option>
+<option>291</option>
+<option>292</option>
+<option>293</option>
+<option>294</option>
+<option>295</option>
+<option>296</option>
+<option>297</option>
+<option>298</option>
+<option>299</option>
+<option>300</option>
+<option>301</option>
+<option>302</option>
+<option>303</option>
+<option>304</option>
+<option>305</option>
+<option>306</option>
+<option>307</option>
+<option>308</option>
+<option>309</option>
+<option>310</option>
+<option>311</option>
+<option>312</option>
+<option>313</option>
+<option>314</option>
+<option>315</option>
+<option>316</option>
+<option>317</option>
+<option>318</option>
+<option>319</option>
+<option>320</option>
+<option>321</option>
+<option>322</option>
+<option>323</option>
+<option>324</option>
+<option>325</option>
+<option>326</option>
+<option>327</option>
+<option>328</option>
+<option>329</option>
+<option>330</option>
+<option>331</option>
+<option>332</option>
+<option>333</option>
+<option>334</option>
+<option>335</option>
+<option>336</option>
+<option>337</option>
+<option>338</option>
+<option>339</option>
+<option>340</option>
+<option>341</option>
+<option>342</option>
+<option>343</option>
+<option>344</option>
+<option>345</option>
+<option>346</option>
+<option>347</option>
+<option>348</option>
+<option>349</option>
+<option>350</option>
+<option>351</option>
+<option>352</option>
+<option>353</option>
+<option>354</option>
+<option>355</option>
+<option>356</option>
+<option>357</option>
+<option>358</option>
+<option>359</option>
+<option>360</option>
+<option>361</option>
+<option>362</option>
+<option>363</option>
+<option>364</option>
+<option>365</option>
+<option>366</option>
+<option>367</option>
+<option>368</option>
+<option>369</option>
+<option>370</option>
+<option>371</option>
+<option>372</option>
+<option>373</option>
+<option>374</option>
+<option>375</option>
+<option>376</option>
+<option>377</option>
+<option>378</option>
+<option>379</option>
+<option>380</option>
+<option>381</option>
+<option>382</option>
+<option>383</option>
+<option>384</option>
+<option>385</option>
+<option>386</option>
+<option>387</option>
+<option>388</option>
+<option>389</option>
+<option>390</option>
+<option>391</option>
+<option>392</option>
+<option>393</option>
+<option>394</option>
+<option>395</option>
+<option>396</option>
+<option>397</option>
+<option>398</option>
+<option>399</option>
+<option>400</option>
+<option>401</option>
+<option>402</option>
+<option>403</option>
+<option>404</option>
+<option>405</option>
+<option>406</option>
+<option>407</option>
+<option>408</option>
+<option>409</option>
+<option>410</option>
+<option>411</option>
+<option>412</option>
+<option>413</option>
+<option>414</option>
+<option>415</option>
+<option>416</option>
+<option>417</option>
+<option>418</option>
+<option>419</option>
+<option>420</option>
+<option>421</option>
+<option>422</option>
+<option>423</option>
+<option>424</option>
+<option>425</option>
+<option>426</option>
+<option>427</option>
+<option>428</option>
+<option>429</option>
+<option>430</option>
+<option>431</option>
+<option>432</option>
+<option>433</option>
+<option>434</option>
+<option>435</option>
+<option>436</option>
+<option>437</option>
+<option>438</option>
+<option>439</option>
+<option>440</option>
+<option>441</option>
+<option>442</option>
+<option>443</option>
+<option>444</option>
+<option>445</option>
+<option>446</option>
+<option>447</option>
+<option>448</option>
+<option>449</option>
+<option>450</option>
+<option>451</option>
+<option>452</option>
+<option>453</option>
+<option>454</option>
+<option>455</option>
+<option>456</option>
+<option>457</option>
+<option>458</option>
+<option>459</option>
+<option>460</option>
+<option>461</option>
+<option>462</option>
+<option>463</option>
+<option>464</option>
+<option>465</option>
+<option>466</option>
+<option>467</option>
+<option>468</option>
+<option>469</option>
+<option>470</option>
+<option>471</option>
+<option>472</option>
+<option>473</option>
+<option>474</option>
+<option>475</option>
+<option>476</option>
+<option>477</option>
+<option>478</option>
+<option>479</option>
+<option>480</option>
+<option>481</option>
+<option>482</option>
+<option>483</option>
+<option>484</option>
+<option>485</option>
+<option>486</option>
+<option>487</option>
+<option>488</option>
+<option>489</option>
+<option>490</option>
+<option>491</option>
+<option>492</option>
+<option>493</option>
+<option>494</option>
+<option>495</option>
+<option>496</option>
+<option>497</option>
+<option>498</option>
+<option>499</option>
+<option>500</option>
+<option>501</option>
+<option>502</option>
+<option>503</option>
+<option>504</option>
+<option>505</option>
+<option>506</option>
+<option>507</option>
+<option>508</option>
+<option>509</option>
+<option>510</option>
+<option>511</option>
+<option>512</option>
+<option>513</option>
+<option>514</option>
+<option>515</option>
+<option>516</option>
+<option>517</option>
+<option>518</option>
+<option>519</option>
+<option>520</option>
+<option>521</option>
+<option>522</option>
+<option>523</option>
+<option>524</option>
+<option>525</option>
+<option>526</option>
+<option>527</option>
+<option>528</option>
+<option>529</option>
+<option>530</option>
+<option>531</option>
+<option>532</option>
+<option>533</option>
+<option>534</option>
+<option>535</option>
+<option>536</option>
+<option>537</option>
+<option>538</option>
+<option>539</option>
+<option>540</option>
+<option>541</option>
+<option>542</option>
+<option>543</option>
+<option>544</option>
+<option>545</option>
+<option>546</option>
+<option>547</option>
+<option>548</option>
+<option>549</option>
+<option>550</option>
+<option>551</option>
+<option>552</option>
+<option>553</option>
+<option>554</option>
+<option>555</option>
+<option>556</option>
+<option>557</option>
+<option>558</option>
+<option>559</option>
+<option>560</option>
+<option>561</option>
+<option>562</option>
+<option>563</option>
+<option>564</option>
+<option>565</option>
+<option>566</option>
+<option>567</option>
+<option>568</option>
+<option>569</option>
+<option>570</option>
+<option>571</option>
+<option>572</option>
+<option>573</option>
+<option>574</option>
+<option>575</option>
+<option>576</option>
+<option>577</option>
+<option>578</option>
+<option>579</option>
+<option>580</option>
+<option>581</option>
+<option>582</option>
+<option>583</option>
+<option>584</option>
+<option>585</option>
+<option>586</option>
+<option>587</option>
+<option>588</option>
+<option>589</option>
+<option>590</option>
+<option>591</option>
+<option>592</option>
+<option>593</option>
+<option>594</option>
+<option>595</option>
+<option>596</option>
+<option>597</option>
+<option>598</option>
+<option>599</option>
+<option>600</option>
+<option>601</option>
+<option>602</option>
+<option>603</option>
+<option>604</option>
+<option>605</option>
+<option>606</option>
+<option>607</option>
+<option>608</option>
+<option>609</option>
+<option>610</option>
+<option>611</option>
+<option>612</option>
+<option>613</option>
+<option>614</option>
+<option>615</option>
+<option>616</option>
+<option>617</option>
+<option>618</option>
+<option>619</option>
+<option>620</option>
+<option>621</option>
+<option>622</option>
+<option>623</option>
+<option>624</option>
+<option>625</option>
+<option>626</option>
+<option>627</option>
+<option>628</option>
+<option>629</option>
+<option>630</option>
+<option>631</option>
+<option>632</option>
+<option>633</option>
+<option>634</option>
+<option>635</option>
+<option>636</option>
+<option>637</option>
+<option>638</option>
+<option>639</option>
+<option>640</option>
+<option>641</option>
+<option>642</option>
+<option>643</option>
+<option>644</option>
+<option>645</option>
+<option>646</option>
+<option>647</option>
+<option>648</option>
+<option>649</option>
+<option>650</option>
+<option>651</option>
+<option>652</option>
+<option>653</option>
+<option>654</option>
+<option>655</option>
+<option>656</option>
+<option>657</option>
+<option>658</option>
+<option>659</option>
+<option>660</option>
+<option>661</option>
+<option>662</option>
+<option>663</option>
+<option>664</option>
+<option>665</option>
+<option>666</option>
+<option>667</option>
+<option>668</option>
+<option>669</option>
+<option>670</option>
+<option>671</option>
+<option>672</option>
+<option>673</option>
+<option>674</option>
+<option>675</option>
+<option>676</option>
+<option>677</option>
+<option>678</option>
+<option>679</option>
+<option>680</option>
+<option>681</option>
+<option>682</option>
+<option>683</option>
+<option>684</option>
+<option>685</option>
+<option>686</option>
+<option>687</option>
+<option>688</option>
+<option>689</option>
+<option>690</option>
+<option>691</option>
+<option>692</option>
+<option>693</option>
+<option>694</option>
+<option>695</option>
+<option>696</option>
+<option>697</option>
+<option>698</option>
+<option>699</option>
+<option>700</option>
+<option>701</option>
+<option>702</option>
+<option>703</option>
+<option>704</option>
+<option>705</option>
+<option>706</option>
+<option>707</option>
+<option>708</option>
+<option>709</option>
+<option>710</option>
+<option>711</option>
+<option>712</option>
+<option>713</option>
+<option>714</option>
+<option>715</option>
+<option>716</option>
+<option>717</option>
+<option>718</option>
+<option>719</option>
+<option>720</option>
+<option>721</option>
+<option>722</option>
+<option>723</option>
+<option>724</option>
+<option>725</option>
+<option>726</option>
+<option>727</option>
+<option>728</option>
+<option>729</option>
+<option>730</option>
+<option>731</option>
+<option>732</option>
+<option>733</option>
+<option>734</option>
+<option>735</option>
+<option>736</option>
+<option>737</option>
+<option>738</option>
+<option>739</option>
+<option>740</option>
+<option>741</option>
+<option>742</option>
+<option>743</option>
+<option>744</option>
+<option>745</option>
+<option>746</option>
+<option>747</option>
+<option>748</option>
+<option>749</option>
+<option>750</option>
+<option>751</option>
+<option>752</option>
+<option>753</option>
+<option>754</option>
+<option>755</option>
+<option>756</option>
+<option>757</option>
+<option>758</option>
+<option>759</option>
+<option>760</option>
+<option>761</option>
+<option>762</option>
+<option>763</option>
+<option>764</option>
+<option>765</option>
+<option>766</option>
+<option>767</option>
+<option>768</option>
+<option>769</option>
+<option>770</option>
+<option>771</option>
+<option>772</option>
+<option>773</option>
+<option>774</option>
+<option>775</option>
+<option>776</option>
+<option>777</option>
+<option>778</option>
+<option>779</option>
+<option>780</option>
+<option>781</option>
+<option>782</option>
+<option>783</option>
+<option>784</option>
+<option>785</option>
+<option>786</option>
+<option>787</option>
+<option>788</option>
+<option>789</option>
+<option>790</option>
+<option>791</option>
+<option>792</option>
+<option>793</option>
+<option>794</option>
+<option>795</option>
+<option>796</option>
+<option>797</option>
+<option>798</option>
+<option>799</option>
+<option>800</option>
+<option>801</option>
+<option>802</option>
+<option>803</option>
+<option>804</option>
+<option>805</option>
+<option>806</option>
+<option>807</option>
+<option>808</option>
+<option>809</option>
+<option>810</option>
+<option>811</option>
+<option>812</option>
+<option>813</option>
+<option>814</option>
+<option>815</option>
+<option>816</option>
+<option>817</option>
+<option>818</option>
+<option>819</option>
+<option>820</option>
+<option>821</option>
+<option>822</option>
+<option>823</option>
+<option>824</option>
+<option>825</option>
+<option>826</option>
+<option>827</option>
+<option>828</option>
+<option>829</option>
+<option>830</option>
+<option>831</option>
+<option>832</option>
+<option>833</option>
+<option>834</option>
+<option>835</option>
+<option>836</option>
+<option>837</option>
+<option>838</option>
+<option>839</option>
+<option>840</option>
+<option>841</option>
+<option>842</option>
+<option>843</option>
+<option>844</option>
+<option>845</option>
+<option>846</option>
+<option>847</option>
+<option>848</option>
+<option>849</option>
+<option>850</option>
+<option>851</option>
+<option>852</option>
+<option>853</option>
+<option>854</option>
+<option>855</option>
+<option>856</option>
+<option>857</option>
+<option>858</option>
+<option>859</option>
+<option>860</option>
+<option>861</option>
+<option>862</option>
+<option>863</option>
+<option>864</option>
+<option>865</option>
+<option>866</option>
+<option>867</option>
+<option>868</option>
+<option>869</option>
+<option>870</option>
+<option>871</option>
+<option>872</option>
+<option>873</option>
+<option>874</option>
+<option>875</option>
+<option>876</option>
+<option>877</option>
+<option>878</option>
+<option>879</option>
+<option>880</option>
+<option>881</option>
+<option>882</option>
+<option>883</option>
+<option>884</option>
+<option>885</option>
+<option>886</option>
+<option>887</option>
+<option>888</option>
+<option>889</option>
+<option>890</option>
+<option>891</option>
+<option>892</option>
+<option>893</option>
+<option>894</option>
+<option>895</option>
+<option>896</option>
+<option>897</option>
+<option>898</option>
+<option>899</option>
+<option>900</option>
+<option>901</option>
+<option>902</option>
+<option>903</option>
+<option>904</option>
+<option>905</option>
+<option>906</option>
+<option>907</option>
+<option>908</option>
+<option>909</option>
+<option>910</option>
+<option>911</option>
+<option>912</option>
+<option>913</option>
+<option>914</option>
+<option>915</option>
+<option>916</option>
+<option>917</option>
+<option>918</option>
+<option>919</option>
+<option>920</option>
+<option>921</option>
+<option>922</option>
+<option>923</option>
+<option>924</option>
+<option>925</option>
+<option>926</option>
+<option>927</option>
+<option>928</option>
+<option>929</option>
+<option>930</option>
+<option>931</option>
+<option>932</option>
+<option>933</option>
+<option>934</option>
+<option>935</option>
+<option>936</option>
+<option>937</option>
+<option>938</option>
+<option>939</option>
+<option>940</option>
+<option>941</option>
+<option>942</option>
+<option>943</option>
+<option>944</option>
+<option>945</option>
+<option>946</option>
+<option>947</option>
+<option>948</option>
+<option>949</option>
+<option>950</option>
+<option>951</option>
+<option>952</option>
+<option>953</option>
+<option>954</option>
+<option>955</option>
+<option>956</option>
+<option>957</option>
+<option>958</option>
+<option>959</option>
+<option>960</option>
+<option>961</option>
+<option>962</option>
+<option>963</option>
+<option>964</option>
+<option>965</option>
+<option>966</option>
+<option>967</option>
+<option>968</option>
+<option>969</option>
+<option>970</option>
+<option>971</option>
+<option>972</option>
+<option>973</option>
+<option>974</option>
+<option>975</option>
+<option>976</option>
+<option>977</option>
+<option>978</option>
+<option>979</option>
+<option>980</option>
+<option>981</option>
+<option>982</option>
+<option>983</option>
+<option>984</option>
+<option>985</option>
+<option>986</option>
+<option>987</option>
+<option>988</option>
+<option>989</option>
+<option>990</option>
+<option>991</option>
+<option>992</option>
+<option>993</option>
+<option>994</option>
+<option>995</option>
+<option>996</option>
+<option>997</option>
+<option>998</option>
+<option>999</option></select></div>
+            <div class="field-group"><label>Metros</label><select id="f-metros"><option value="">---</option><option>000</option>
+<option>001</option>
+<option>002</option>
+<option>003</option>
+<option>004</option>
+<option>005</option>
+<option>006</option>
+<option>007</option>
+<option>008</option>
+<option>009</option>
+<option>010</option>
+<option>011</option>
+<option>012</option>
+<option>013</option>
+<option>014</option>
+<option>015</option>
+<option>016</option>
+<option>017</option>
+<option>018</option>
+<option>019</option>
+<option>020</option>
+<option>021</option>
+<option>022</option>
+<option>023</option>
+<option>024</option>
+<option>025</option>
+<option>026</option>
+<option>027</option>
+<option>028</option>
+<option>029</option>
+<option>030</option>
+<option>031</option>
+<option>032</option>
+<option>033</option>
+<option>034</option>
+<option>035</option>
+<option>036</option>
+<option>037</option>
+<option>038</option>
+<option>039</option>
+<option>040</option>
+<option>041</option>
+<option>042</option>
+<option>043</option>
+<option>044</option>
+<option>045</option>
+<option>046</option>
+<option>047</option>
+<option>048</option>
+<option>049</option>
+<option>050</option>
+<option>051</option>
+<option>052</option>
+<option>053</option>
+<option>054</option>
+<option>055</option>
+<option>056</option>
+<option>057</option>
+<option>058</option>
+<option>059</option>
+<option>060</option>
+<option>061</option>
+<option>062</option>
+<option>063</option>
+<option>064</option>
+<option>065</option>
+<option>066</option>
+<option>067</option>
+<option>068</option>
+<option>069</option>
+<option>070</option>
+<option>071</option>
+<option>072</option>
+<option>073</option>
+<option>074</option>
+<option>075</option>
+<option>076</option>
+<option>077</option>
+<option>078</option>
+<option>079</option>
+<option>080</option>
+<option>081</option>
+<option>082</option>
+<option>083</option>
+<option>084</option>
+<option>085</option>
+<option>086</option>
+<option>087</option>
+<option>088</option>
+<option>089</option>
+<option>090</option>
+<option>091</option>
+<option>092</option>
+<option>093</option>
+<option>094</option>
+<option>095</option>
+<option>096</option>
+<option>097</option>
+<option>098</option>
+<option>099</option>
+<option>100</option>
+<option>101</option>
+<option>102</option>
+<option>103</option>
+<option>104</option>
+<option>105</option>
+<option>106</option>
+<option>107</option>
+<option>108</option>
+<option>109</option>
+<option>110</option>
+<option>111</option>
+<option>112</option>
+<option>113</option>
+<option>114</option>
+<option>115</option>
+<option>116</option>
+<option>117</option>
+<option>118</option>
+<option>119</option>
+<option>120</option>
+<option>121</option>
+<option>122</option>
+<option>123</option>
+<option>124</option>
+<option>125</option>
+<option>126</option>
+<option>127</option>
+<option>128</option>
+<option>129</option>
+<option>130</option>
+<option>131</option>
+<option>132</option>
+<option>133</option>
+<option>134</option>
+<option>135</option>
+<option>136</option>
+<option>137</option>
+<option>138</option>
+<option>139</option>
+<option>140</option>
+<option>141</option>
+<option>142</option>
+<option>143</option>
+<option>144</option>
+<option>145</option>
+<option>146</option>
+<option>147</option>
+<option>148</option>
+<option>149</option>
+<option>150</option>
+<option>151</option>
+<option>152</option>
+<option>153</option>
+<option>154</option>
+<option>155</option>
+<option>156</option>
+<option>157</option>
+<option>158</option>
+<option>159</option>
+<option>160</option>
+<option>161</option>
+<option>162</option>
+<option>163</option>
+<option>164</option>
+<option>165</option>
+<option>166</option>
+<option>167</option>
+<option>168</option>
+<option>169</option>
+<option>170</option>
+<option>171</option>
+<option>172</option>
+<option>173</option>
+<option>174</option>
+<option>175</option>
+<option>176</option>
+<option>177</option>
+<option>178</option>
+<option>179</option>
+<option>180</option>
+<option>181</option>
+<option>182</option>
+<option>183</option>
+<option>184</option>
+<option>185</option>
+<option>186</option>
+<option>187</option>
+<option>188</option>
+<option>189</option>
+<option>190</option>
+<option>191</option>
+<option>192</option>
+<option>193</option>
+<option>194</option>
+<option>195</option>
+<option>196</option>
+<option>197</option>
+<option>198</option>
+<option>199</option>
+<option>200</option>
+<option>201</option>
+<option>202</option>
+<option>203</option>
+<option>204</option>
+<option>205</option>
+<option>206</option>
+<option>207</option>
+<option>208</option>
+<option>209</option>
+<option>210</option>
+<option>211</option>
+<option>212</option>
+<option>213</option>
+<option>214</option>
+<option>215</option>
+<option>216</option>
+<option>217</option>
+<option>218</option>
+<option>219</option>
+<option>220</option>
+<option>221</option>
+<option>222</option>
+<option>223</option>
+<option>224</option>
+<option>225</option>
+<option>226</option>
+<option>227</option>
+<option>228</option>
+<option>229</option>
+<option>230</option>
+<option>231</option>
+<option>232</option>
+<option>233</option>
+<option>234</option>
+<option>235</option>
+<option>236</option>
+<option>237</option>
+<option>238</option>
+<option>239</option>
+<option>240</option>
+<option>241</option>
+<option>242</option>
+<option>243</option>
+<option>244</option>
+<option>245</option>
+<option>246</option>
+<option>247</option>
+<option>248</option>
+<option>249</option>
+<option>250</option>
+<option>251</option>
+<option>252</option>
+<option>253</option>
+<option>254</option>
+<option>255</option>
+<option>256</option>
+<option>257</option>
+<option>258</option>
+<option>259</option>
+<option>260</option>
+<option>261</option>
+<option>262</option>
+<option>263</option>
+<option>264</option>
+<option>265</option>
+<option>266</option>
+<option>267</option>
+<option>268</option>
+<option>269</option>
+<option>270</option>
+<option>271</option>
+<option>272</option>
+<option>273</option>
+<option>274</option>
+<option>275</option>
+<option>276</option>
+<option>277</option>
+<option>278</option>
+<option>279</option>
+<option>280</option>
+<option>281</option>
+<option>282</option>
+<option>283</option>
+<option>284</option>
+<option>285</option>
+<option>286</option>
+<option>287</option>
+<option>288</option>
+<option>289</option>
+<option>290</option>
+<option>291</option>
+<option>292</option>
+<option>293</option>
+<option>294</option>
+<option>295</option>
+<option>296</option>
+<option>297</option>
+<option>298</option>
+<option>299</option>
+<option>300</option>
+<option>301</option>
+<option>302</option>
+<option>303</option>
+<option>304</option>
+<option>305</option>
+<option>306</option>
+<option>307</option>
+<option>308</option>
+<option>309</option>
+<option>310</option>
+<option>311</option>
+<option>312</option>
+<option>313</option>
+<option>314</option>
+<option>315</option>
+<option>316</option>
+<option>317</option>
+<option>318</option>
+<option>319</option>
+<option>320</option>
+<option>321</option>
+<option>322</option>
+<option>323</option>
+<option>324</option>
+<option>325</option>
+<option>326</option>
+<option>327</option>
+<option>328</option>
+<option>329</option>
+<option>330</option>
+<option>331</option>
+<option>332</option>
+<option>333</option>
+<option>334</option>
+<option>335</option>
+<option>336</option>
+<option>337</option>
+<option>338</option>
+<option>339</option>
+<option>340</option>
+<option>341</option>
+<option>342</option>
+<option>343</option>
+<option>344</option>
+<option>345</option>
+<option>346</option>
+<option>347</option>
+<option>348</option>
+<option>349</option>
+<option>350</option>
+<option>351</option>
+<option>352</option>
+<option>353</option>
+<option>354</option>
+<option>355</option>
+<option>356</option>
+<option>357</option>
+<option>358</option>
+<option>359</option>
+<option>360</option>
+<option>361</option>
+<option>362</option>
+<option>363</option>
+<option>364</option>
+<option>365</option>
+<option>366</option>
+<option>367</option>
+<option>368</option>
+<option>369</option>
+<option>370</option>
+<option>371</option>
+<option>372</option>
+<option>373</option>
+<option>374</option>
+<option>375</option>
+<option>376</option>
+<option>377</option>
+<option>378</option>
+<option>379</option>
+<option>380</option>
+<option>381</option>
+<option>382</option>
+<option>383</option>
+<option>384</option>
+<option>385</option>
+<option>386</option>
+<option>387</option>
+<option>388</option>
+<option>389</option>
+<option>390</option>
+<option>391</option>
+<option>392</option>
+<option>393</option>
+<option>394</option>
+<option>395</option>
+<option>396</option>
+<option>397</option>
+<option>398</option>
+<option>399</option>
+<option>400</option>
+<option>401</option>
+<option>402</option>
+<option>403</option>
+<option>404</option>
+<option>405</option>
+<option>406</option>
+<option>407</option>
+<option>408</option>
+<option>409</option>
+<option>410</option>
+<option>411</option>
+<option>412</option>
+<option>413</option>
+<option>414</option>
+<option>415</option>
+<option>416</option>
+<option>417</option>
+<option>418</option>
+<option>419</option>
+<option>420</option>
+<option>421</option>
+<option>422</option>
+<option>423</option>
+<option>424</option>
+<option>425</option>
+<option>426</option>
+<option>427</option>
+<option>428</option>
+<option>429</option>
+<option>430</option>
+<option>431</option>
+<option>432</option>
+<option>433</option>
+<option>434</option>
+<option>435</option>
+<option>436</option>
+<option>437</option>
+<option>438</option>
+<option>439</option>
+<option>440</option>
+<option>441</option>
+<option>442</option>
+<option>443</option>
+<option>444</option>
+<option>445</option>
+<option>446</option>
+<option>447</option>
+<option>448</option>
+<option>449</option>
+<option>450</option>
+<option>451</option>
+<option>452</option>
+<option>453</option>
+<option>454</option>
+<option>455</option>
+<option>456</option>
+<option>457</option>
+<option>458</option>
+<option>459</option>
+<option>460</option>
+<option>461</option>
+<option>462</option>
+<option>463</option>
+<option>464</option>
+<option>465</option>
+<option>466</option>
+<option>467</option>
+<option>468</option>
+<option>469</option>
+<option>470</option>
+<option>471</option>
+<option>472</option>
+<option>473</option>
+<option>474</option>
+<option>475</option>
+<option>476</option>
+<option>477</option>
+<option>478</option>
+<option>479</option>
+<option>480</option>
+<option>481</option>
+<option>482</option>
+<option>483</option>
+<option>484</option>
+<option>485</option>
+<option>486</option>
+<option>487</option>
+<option>488</option>
+<option>489</option>
+<option>490</option>
+<option>491</option>
+<option>492</option>
+<option>493</option>
+<option>494</option>
+<option>495</option>
+<option>496</option>
+<option>497</option>
+<option>498</option>
+<option>499</option>
+<option>500</option>
+<option>501</option>
+<option>502</option>
+<option>503</option>
+<option>504</option>
+<option>505</option>
+<option>506</option>
+<option>507</option>
+<option>508</option>
+<option>509</option>
+<option>510</option>
+<option>511</option>
+<option>512</option>
+<option>513</option>
+<option>514</option>
+<option>515</option>
+<option>516</option>
+<option>517</option>
+<option>518</option>
+<option>519</option>
+<option>520</option>
+<option>521</option>
+<option>522</option>
+<option>523</option>
+<option>524</option>
+<option>525</option>
+<option>526</option>
+<option>527</option>
+<option>528</option>
+<option>529</option>
+<option>530</option>
+<option>531</option>
+<option>532</option>
+<option>533</option>
+<option>534</option>
+<option>535</option>
+<option>536</option>
+<option>537</option>
+<option>538</option>
+<option>539</option>
+<option>540</option>
+<option>541</option>
+<option>542</option>
+<option>543</option>
+<option>544</option>
+<option>545</option>
+<option>546</option>
+<option>547</option>
+<option>548</option>
+<option>549</option>
+<option>550</option>
+<option>551</option>
+<option>552</option>
+<option>553</option>
+<option>554</option>
+<option>555</option>
+<option>556</option>
+<option>557</option>
+<option>558</option>
+<option>559</option>
+<option>560</option>
+<option>561</option>
+<option>562</option>
+<option>563</option>
+<option>564</option>
+<option>565</option>
+<option>566</option>
+<option>567</option>
+<option>568</option>
+<option>569</option>
+<option>570</option>
+<option>571</option>
+<option>572</option>
+<option>573</option>
+<option>574</option>
+<option>575</option>
+<option>576</option>
+<option>577</option>
+<option>578</option>
+<option>579</option>
+<option>580</option>
+<option>581</option>
+<option>582</option>
+<option>583</option>
+<option>584</option>
+<option>585</option>
+<option>586</option>
+<option>587</option>
+<option>588</option>
+<option>589</option>
+<option>590</option>
+<option>591</option>
+<option>592</option>
+<option>593</option>
+<option>594</option>
+<option>595</option>
+<option>596</option>
+<option>597</option>
+<option>598</option>
+<option>599</option>
+<option>600</option>
+<option>601</option>
+<option>602</option>
+<option>603</option>
+<option>604</option>
+<option>605</option>
+<option>606</option>
+<option>607</option>
+<option>608</option>
+<option>609</option>
+<option>610</option>
+<option>611</option>
+<option>612</option>
+<option>613</option>
+<option>614</option>
+<option>615</option>
+<option>616</option>
+<option>617</option>
+<option>618</option>
+<option>619</option>
+<option>620</option>
+<option>621</option>
+<option>622</option>
+<option>623</option>
+<option>624</option>
+<option>625</option>
+<option>626</option>
+<option>627</option>
+<option>628</option>
+<option>629</option>
+<option>630</option>
+<option>631</option>
+<option>632</option>
+<option>633</option>
+<option>634</option>
+<option>635</option>
+<option>636</option>
+<option>637</option>
+<option>638</option>
+<option>639</option>
+<option>640</option>
+<option>641</option>
+<option>642</option>
+<option>643</option>
+<option>644</option>
+<option>645</option>
+<option>646</option>
+<option>647</option>
+<option>648</option>
+<option>649</option>
+<option>650</option>
+<option>651</option>
+<option>652</option>
+<option>653</option>
+<option>654</option>
+<option>655</option>
+<option>656</option>
+<option>657</option>
+<option>658</option>
+<option>659</option>
+<option>660</option>
+<option>661</option>
+<option>662</option>
+<option>663</option>
+<option>664</option>
+<option>665</option>
+<option>666</option>
+<option>667</option>
+<option>668</option>
+<option>669</option>
+<option>670</option>
+<option>671</option>
+<option>672</option>
+<option>673</option>
+<option>674</option>
+<option>675</option>
+<option>676</option>
+<option>677</option>
+<option>678</option>
+<option>679</option>
+<option>680</option>
+<option>681</option>
+<option>682</option>
+<option>683</option>
+<option>684</option>
+<option>685</option>
+<option>686</option>
+<option>687</option>
+<option>688</option>
+<option>689</option>
+<option>690</option>
+<option>691</option>
+<option>692</option>
+<option>693</option>
+<option>694</option>
+<option>695</option>
+<option>696</option>
+<option>697</option>
+<option>698</option>
+<option>699</option>
+<option>700</option>
+<option>701</option>
+<option>702</option>
+<option>703</option>
+<option>704</option>
+<option>705</option>
+<option>706</option>
+<option>707</option>
+<option>708</option>
+<option>709</option>
+<option>710</option>
+<option>711</option>
+<option>712</option>
+<option>713</option>
+<option>714</option>
+<option>715</option>
+<option>716</option>
+<option>717</option>
+<option>718</option>
+<option>719</option>
+<option>720</option>
+<option>721</option>
+<option>722</option>
+<option>723</option>
+<option>724</option>
+<option>725</option>
+<option>726</option>
+<option>727</option>
+<option>728</option>
+<option>729</option>
+<option>730</option>
+<option>731</option>
+<option>732</option>
+<option>733</option>
+<option>734</option>
+<option>735</option>
+<option>736</option>
+<option>737</option>
+<option>738</option>
+<option>739</option>
+<option>740</option>
+<option>741</option>
+<option>742</option>
+<option>743</option>
+<option>744</option>
+<option>745</option>
+<option>746</option>
+<option>747</option>
+<option>748</option>
+<option>749</option>
+<option>750</option>
+<option>751</option>
+<option>752</option>
+<option>753</option>
+<option>754</option>
+<option>755</option>
+<option>756</option>
+<option>757</option>
+<option>758</option>
+<option>759</option>
+<option>760</option>
+<option>761</option>
+<option>762</option>
+<option>763</option>
+<option>764</option>
+<option>765</option>
+<option>766</option>
+<option>767</option>
+<option>768</option>
+<option>769</option>
+<option>770</option>
+<option>771</option>
+<option>772</option>
+<option>773</option>
+<option>774</option>
+<option>775</option>
+<option>776</option>
+<option>777</option>
+<option>778</option>
+<option>779</option>
+<option>780</option>
+<option>781</option>
+<option>782</option>
+<option>783</option>
+<option>784</option>
+<option>785</option>
+<option>786</option>
+<option>787</option>
+<option>788</option>
+<option>789</option>
+<option>790</option>
+<option>791</option>
+<option>792</option>
+<option>793</option>
+<option>794</option>
+<option>795</option>
+<option>796</option>
+<option>797</option>
+<option>798</option>
+<option>799</option>
+<option>800</option>
+<option>801</option>
+<option>802</option>
+<option>803</option>
+<option>804</option>
+<option>805</option>
+<option>806</option>
+<option>807</option>
+<option>808</option>
+<option>809</option>
+<option>810</option>
+<option>811</option>
+<option>812</option>
+<option>813</option>
+<option>814</option>
+<option>815</option>
+<option>816</option>
+<option>817</option>
+<option>818</option>
+<option>819</option>
+<option>820</option>
+<option>821</option>
+<option>822</option>
+<option>823</option>
+<option>824</option>
+<option>825</option>
+<option>826</option>
+<option>827</option>
+<option>828</option>
+<option>829</option>
+<option>830</option>
+<option>831</option>
+<option>832</option>
+<option>833</option>
+<option>834</option>
+<option>835</option>
+<option>836</option>
+<option>837</option>
+<option>838</option>
+<option>839</option>
+<option>840</option>
+<option>841</option>
+<option>842</option>
+<option>843</option>
+<option>844</option>
+<option>845</option>
+<option>846</option>
+<option>847</option>
+<option>848</option>
+<option>849</option>
+<option>850</option>
+<option>851</option>
+<option>852</option>
+<option>853</option>
+<option>854</option>
+<option>855</option>
+<option>856</option>
+<option>857</option>
+<option>858</option>
+<option>859</option>
+<option>860</option>
+<option>861</option>
+<option>862</option>
+<option>863</option>
+<option>864</option>
+<option>865</option>
+<option>866</option>
+<option>867</option>
+<option>868</option>
+<option>869</option>
+<option>870</option>
+<option>871</option>
+<option>872</option>
+<option>873</option>
+<option>874</option>
+<option>875</option>
+<option>876</option>
+<option>877</option>
+<option>878</option>
+<option>879</option>
+<option>880</option>
+<option>881</option>
+<option>882</option>
+<option>883</option>
+<option>884</option>
+<option>885</option>
+<option>886</option>
+<option>887</option>
+<option>888</option>
+<option>889</option>
+<option>890</option>
+<option>891</option>
+<option>892</option>
+<option>893</option>
+<option>894</option>
+<option>895</option>
+<option>896</option>
+<option>897</option>
+<option>898</option>
+<option>899</option>
+<option>900</option>
+<option>901</option>
+<option>902</option>
+<option>903</option>
+<option>904</option>
+<option>905</option>
+<option>906</option>
+<option>907</option>
+<option>908</option>
+<option>909</option>
+<option>910</option>
+<option>911</option>
+<option>912</option>
+<option>913</option>
+<option>914</option>
+<option>915</option>
+<option>916</option>
+<option>917</option>
+<option>918</option>
+<option>919</option>
+<option>920</option>
+<option>921</option>
+<option>922</option>
+<option>923</option>
+<option>924</option>
+<option>925</option>
+<option>926</option>
+<option>927</option>
+<option>928</option>
+<option>929</option>
+<option>930</option>
+<option>931</option>
+<option>932</option>
+<option>933</option>
+<option>934</option>
+<option>935</option>
+<option>936</option>
+<option>937</option>
+<option>938</option>
+<option>939</option>
+<option>940</option>
+<option>941</option>
+<option>942</option>
+<option>943</option>
+<option>944</option>
+<option>945</option>
+<option>946</option>
+<option>947</option>
+<option>948</option>
+<option>949</option>
+<option>950</option>
+<option>951</option>
+<option>952</option>
+<option>953</option>
+<option>954</option>
+<option>955</option>
+<option>956</option>
+<option>957</option>
+<option>958</option>
+<option>959</option>
+<option>960</option>
+<option>961</option>
+<option>962</option>
+<option>963</option>
+<option>964</option>
+<option>965</option>
+<option>966</option>
+<option>967</option>
+<option>968</option>
+<option>969</option>
+<option>970</option>
+<option>971</option>
+<option>972</option>
+<option>973</option>
+<option>974</option>
+<option>975</option>
+<option>976</option>
+<option>977</option>
+<option>978</option>
+<option>979</option>
+<option>980</option>
+<option>981</option>
+<option>982</option>
+<option>983</option>
+<option>984</option>
+<option>985</option>
+<option>986</option>
+<option>987</option>
+<option>988</option>
+<option>989</option>
+<option>990</option>
+<option>991</option>
+<option>992</option>
+<option>993</option>
+<option>994</option>
+<option>995</option>
+<option>996</option>
+<option>997</option>
+<option>998</option>
+<option>999</option></select></div>
+            <div class="field-group"><label>Pista</label><select id="f-pista"><option value="">Selecione…</option><option>Norte</option><option>Sul</option><option>Leste</option><option>Oeste</option></select></div>
+            <div class="field-group"><label>Município *</label><select id="f-municipio" required><option value="">Selecione…</option><option>Adamantina</option>
+<option>Adolfo</option>
+<option>Aguaí</option>
+<option>Águas da Prata</option>
+<option>Águas de Lindóia</option>
+<option>Águas de Santa Bárbara</option>
+<option>Águas de São Pedro</option>
+<option>Agudos</option>
+<option>Alambari</option>
+<option>Alfredo Marcondes</option>
+<option>Altair</option>
+<option>Altinópolis</option>
+<option>Alto Alegre</option>
+<option>Alumínio</option>
+<option>Álvares Florence</option>
+<option>Álvares Machado</option>
+<option>Álvaro de Carvalho</option>
+<option>Alvinlândia</option>
+<option>Americana</option>
+<option>Américo Brasiliense</option>
+<option>Américo de Campos</option>
+<option>Amparo</option>
+<option>Analândia</option>
+<option>Andradina</option>
+<option>Angatuba</option>
+<option>Anhembi</option>
+<option>Anhumas</option>
+<option>Aparecida</option>
+<option>Aparecida d'Oeste</option>
+<option>Apiaí</option>
+<option>Araçariguama</option>
+<option>Araçatuba</option>
+<option>Araçoiaba da Serra</option>
+<option>Aramina</option>
+<option>Arandu</option>
+<option>Arapeí</option>
+<option>Araraquara</option>
+<option>Araras</option>
+<option>Arco-Íris</option>
+<option>Arealva</option>
+<option>Areias</option>
+<option>Areiópolis</option>
+<option>Ariranha</option>
+<option>Artur Nogueira</option>
+<option>Arujá</option>
+<option>Aspásia</option>
+<option>Assis</option>
+<option>Atibaia</option>
+<option>Auriflama</option>
+<option>Avaí</option>
+<option>Avanhandava</option>
+<option>Avaré</option>
+<option>Bady Bassitt</option>
+<option>Balbinos</option>
+<option>Bálsamo</option>
+<option>Bananal</option>
+<option>Barão de Antonina</option>
+<option>Barbosa</option>
+<option>Bariri</option>
+<option>Barra Bonita</option>
+<option>Barra do Chapéu</option>
+<option>Barra do Turvo</option>
+<option>Barretos</option>
+<option>Barrinha</option>
+<option>Barueri</option>
+<option>Bastos</option>
+<option>Batatais</option>
+<option>Bauru</option>
+<option>Bebedouro</option>
+<option>Bento de Abreu</option>
+<option>Bernardino de Campos</option>
+<option>Bertioga</option>
+<option>Bilac</option>
+<option>Birigui</option>
+<option>Biritiba-Mirim</option>
+<option>Boa Esperança do Sul</option>
+<option>Bocaina</option>
+<option>Bofete</option>
+<option>Boituva</option>
+<option>Bom Jesus dos Perdões</option>
+<option>Bom Sucesso de Itararé</option>
+<option>Borá</option>
+<option>Boracéia</option>
+<option>Borborema</option>
+<option>Borebi</option>
+<option>Botucatu</option>
+<option>Bragança Paulista</option>
+<option>Braúna</option>
+<option>Brejo Alegre</option>
+<option>Brodowski</option>
+<option>Brotas</option>
+<option>Buri</option>
+<option>Buritama</option>
+<option>Buritizal</option>
+<option>Cabrália Paulista</option>
+<option>Cabreúva</option>
+<option>Caçapava</option>
+<option>Cachoeira Paulista</option>
+<option>Caconde</option>
+<option>Cafelândia</option>
+<option>Caiabu</option>
+<option>Caieiras</option>
+<option>Caiuá</option>
+<option>Cajamar</option>
+<option>Cajati</option>
+<option>Cajobi</option>
+<option>Cajuru</option>
+<option>Campina do Monte Alegre</option>
+<option>Campinas</option>
+<option>Campo Limpo Paulista</option>
+<option>Campos do Jordão</option>
+<option>Campos Novos Paulista</option>
+<option>Cananéia</option>
+<option>Canas</option>
+<option>Cândido Mota</option>
+<option>Cândido Rodrigues</option>
+<option>Canitar</option>
+<option>Capão Bonito</option>
+<option>Capela do Alto</option>
+<option>Capivari</option>
+<option>Caraguatatuba</option>
+<option>Carapicuíba</option>
+<option>Cardoso</option>
+<option>Casa Branca</option>
+<option>Cássia dos Coqueiros</option>
+<option>Castilho</option>
+<option>Catanduva</option>
+<option>Catiguá</option>
+<option>Cedral</option>
+<option>Cerqueira César</option>
+<option>Cerquilho</option>
+<option>Cesário Lange</option>
+<option>Charqueada</option>
+<option>Clementina</option>
+<option>Colina</option>
+<option>Colômbia</option>
+<option>Conchal</option>
+<option>Conchas</option>
+<option>Cordeirópolis</option>
+<option>Coroados</option>
+<option>Coronel Macedo</option>
+<option>Corumbataí</option>
+<option>Cosmópolis</option>
+<option>Cosmorama</option>
+<option>Cotia</option>
+<option>Cravinhos</option>
+<option>Cristais Paulista</option>
+<option>Cruzália</option>
+<option>Cruzeiro</option>
+<option>Cubatão</option>
+<option>Cunha</option>
+<option>Descalvado</option>
+<option>Diadema</option>
+<option>Dirce Reis</option>
+<option>Divinolândia</option>
+<option>Dobrada</option>
+<option>Dois Córregos</option>
+<option>Dolcinópolis</option>
+<option>Dourado</option>
+<option>Dracena</option>
+<option>Duartina</option>
+<option>Dumont</option>
+<option>Echaporã</option>
+<option>Eldorado</option>
+<option>Embaúba</option>
+<option>Embu das Artes</option>
+<option>Embu-Guaçu</option>
+<option>Emilianópolis</option>
+<option>Engenheiro Coelho</option>
+<option>Espírito Santo do Pinhal</option>
+<option>Espírito Santo do Turvo</option>
+<option>Estiva Gerbi</option>
+<option>Estrela d'Oeste</option>
+<option>Estrela do Norte</option>
+<option>Euclides da Cunha Paulista</option>
+<option>Fartura</option>
+<option>Fernando Prestes</option>
+<option>Fernandópolis</option>
+<option>Fernão</option>
+<option>Ferraz de Vasconcelos</option>
+<option>Flora Rica</option>
+<option>Floreal</option>
+<option>Flórida Paulista</option>
+<option>Florínea</option>
+<option>Franca</option>
+<option>Francisco Morato</option>
+<option>Franco da Rocha</option>
+<option>Gabriel Monteiro</option>
+<option>Gália</option>
+<option>Garça</option>
+<option>Gastão Vidigal</option>
+<option>Gavião Peixoto</option>
+<option>General Salgado</option>
+<option>Getulina</option>
+<option>Glicério</option>
+<option>Guaiçara</option>
+<option>Guaimbê</option>
+<option>Guaíra</option>
+<option>Guapiaçu</option>
+<option>Guapiara</option>
+<option>Guará</option>
+<option>Guaraçaí</option>
+<option>Guaraci</option>
+<option>Guarani d'Oeste</option>
+<option>Guarantã</option>
+<option>Guararapes</option>
+<option>Guararema</option>
+<option>Guaratinguetá</option>
+<option>Guareí</option>
+<option>Guariba</option>
+<option>Guarujá</option>
+<option>Guarulhos</option>
+<option>Guatapará</option>
+<option>Guzolândia</option>
+<option>Herculândia</option>
+<option>Holambra</option>
+<option>Hortolândia</option>
+<option>Iacanga</option>
+<option>Iacri</option>
+<option>Iaras</option>
+<option>Ibaté</option>
+<option>Ibirá</option>
+<option>Ibirarema</option>
+<option>Ibitinga</option>
+<option>Ibiúna</option>
+<option>Icém</option>
+<option>Iepê</option>
+<option>Igaraçu do Tietê</option>
+<option>Igarapava</option>
+<option>Igaratá</option>
+<option>Iguape</option>
+<option>Ilha Comprida</option>
+<option>Ilha Solteira</option>
+<option>Ilhabela</option>
+<option>Indaiatuba</option>
+<option>Indiana</option>
+<option>Indiaporã</option>
+<option>Inúbia Paulista</option>
+<option>Ipaussu</option>
+<option>Iperó</option>
+<option>Ipeúna</option>
+<option>Ipiguá</option>
+<option>Iporanga</option>
+<option>Ipuã</option>
+<option>Iracemápolis</option>
+<option>Irapuã</option>
+<option>Irapuru</option>
+<option>Itaberá</option>
+<option>Itaí</option>
+<option>Itajobi</option>
+<option>Itaju</option>
+<option>Itanhaém</option>
+<option>Itaoca</option>
+<option>Itapecerica da Serra</option>
+<option>Itapetininga</option>
+<option>Itapeva</option>
+<option>Itapevi</option>
+<option>Itapira</option>
+<option>Itapirapuã Paulista</option>
+<option>Itápolis</option>
+<option>Itaporanga</option>
+<option>Itapuí</option>
+<option>Itapura</option>
+<option>Itaquaquecetuba</option>
+<option>Itararé</option>
+<option>Itariri</option>
+<option>Itatiba</option>
+<option>Itatinga</option>
+<option>Itirapina</option>
+<option>Itirapuã</option>
+<option>Itobi</option>
+<option>Itu</option>
+<option>Itupeva</option>
+<option>Ituverava</option>
+<option>Jaborandi</option>
+<option>Jaboticabal</option>
+<option>Jacareí</option>
+<option>Jaci</option>
+<option>Jacupiranga</option>
+<option>Jaguariúna</option>
+<option>Jales</option>
+<option>Jambeiro</option>
+<option>Jandira</option>
+<option>Jardinópolis</option>
+<option>Jarinu</option>
+<option>Jaú</option>
+<option>Jeriquara</option>
+<option>Joanópolis</option>
+<option>João Ramalho</option>
+<option>José Bonifácio</option>
+<option>Júlio Mesquita</option>
+<option>Jumirim</option>
+<option>Jundiaí</option>
+<option>Junqueirópolis</option>
+<option>Juquiá</option>
+<option>Juquitiba</option>
+<option>Lagoinha</option>
+<option>Laranjal Paulista</option>
+<option>Lavínia</option>
+<option>Lavrinhas</option>
+<option>Leme</option>
+<option>Lençóis Paulista</option>
+<option>Limeira</option>
+<option>Lindóia</option>
+<option>Lins</option>
+<option>Lorena</option>
+<option>Lourdes</option>
+<option>Louveira</option>
+<option>Lucélia</option>
+<option>Lucianópolis</option>
+<option>Luís Antônio</option>
+<option>Luiziânia</option>
+<option>Lupércio</option>
+<option>Lutécia</option>
+<option>Macatuba</option>
+<option>Macaubal</option>
+<option>Macedônia</option>
+<option>Magda</option>
+<option>Mairinque</option>
+<option>Mairiporã</option>
+<option>Manduri</option>
+<option>Marabá Paulista</option>
+<option>Maracaí</option>
+<option>Marapoama</option>
+<option>Mariápolis</option>
+<option>Marília</option>
+<option>Marinópolis</option>
+<option>Martinópolis</option>
+<option>Matão</option>
+<option>Mauá</option>
+<option>Mendonça</option>
+<option>Meridiano</option>
+<option>Mesópolis</option>
+<option>Miguelópolis</option>
+<option>Mineiros do Tietê</option>
+<option>Mira Estrela</option>
+<option>Miracatu</option>
+<option>Mirandópolis</option>
+<option>Mirante do Paranapanema</option>
+<option>Mirassol</option>
+<option>Mirassolândia</option>
+<option>Mococa</option>
+<option>Mogi das Cruzes</option>
+<option>Mogi Guaçu</option>
+<option>Mogi Mirim</option>
+<option>Mombuca</option>
+<option>Monções</option>
+<option>Mongaguá</option>
+<option>Monte Alegre do Sul</option>
+<option>Monte Alto</option>
+<option>Monte Aprazível</option>
+<option>Monte Azul Paulista</option>
+<option>Monte Castelo</option>
+<option>Monte Mor</option>
+<option>Monteiro Lobato</option>
+<option>Morro Agudo</option>
+<option>Morungaba</option>
+<option>Motuca</option>
+<option>Murutinga do Sul</option>
+<option>Nantes</option>
+<option>Narandiba</option>
+<option>Natividade da Serra</option>
+<option>Nazaré Paulista</option>
+<option>Neves Paulista</option>
+<option>Nhandeara</option>
+<option>Nipoã</option>
+<option>Nova Aliança</option>
+<option>Nova Campina</option>
+<option>Nova Canaã Paulista</option>
+<option>Nova Castilho</option>
+<option>Nova Europa</option>
+<option>Nova Granada</option>
+<option>Nova Guataporanga</option>
+<option>Nova Independência</option>
+<option>Nova Luzitânia</option>
+<option>Nova Odessa</option>
+<option>Novais</option>
+<option>Novo Horizonte</option>
+<option>Nuporanga</option>
+<option>Ocauçu</option>
+<option>Óleo</option>
+<option>Olímpia</option>
+<option>Onda Verde</option>
+<option>Oriente</option>
+<option>Orindiúva</option>
+<option>Orlândia</option>
+<option>Osasco</option>
+<option>Oscar Bressane</option>
+<option>Osvaldo Cruz</option>
+<option>Ourinhos</option>
+<option>Ouro Verde</option>
+<option>Ouroeste</option>
+<option>Pacaembu</option>
+<option>Palestina</option>
+<option>Palmares Paulista</option>
+<option>Palmeira d'Oeste</option>
+<option>Palmital</option>
+<option>Panorama</option>
+<option>Paraguaçu Paulista</option>
+<option>Paraibuna</option>
+<option>Paraíso</option>
+<option>Paranapanema</option>
+<option>Paranapuã</option>
+<option>Parapuã</option>
+<option>Pardinho</option>
+<option>Pariquera-Açu</option>
+<option>Parisi</option>
+<option>Patrocínio Paulista</option>
+<option>Paulicéia</option>
+<option>Paulínia</option>
+<option>Paulistânia</option>
+<option>Paulo de Faria</option>
+<option>Pederneiras</option>
+<option>Pedra Bela</option>
+<option>Pedranópolis</option>
+<option>Pedregulho</option>
+<option>Pedreira</option>
+<option>Pedrinhas Paulista</option>
+<option>Pedro de Toledo</option>
+<option>Penápolis</option>
+<option>Pereira Barreto</option>
+<option>Pereiras</option>
+<option>Peruíbe</option>
+<option>Piacatu</option>
+<option>Piedade</option>
+<option>Pilar do Sul</option>
+<option>Pindamonhangaba</option>
+<option>Pindorama</option>
+<option>Pinhalzinho</option>
+<option>Piquerobi</option>
+<option>Piquete</option>
+<option>Piracaia</option>
+<option>Piracicaba</option>
+<option>Piraju</option>
+<option>Pirajuí</option>
+<option>Pirangi</option>
+<option>Pirapora do Bom Jesus</option>
+<option>Pirapozinho</option>
+<option>Pirassununga</option>
+<option>Piratininga</option>
+<option>Pitangueiras</option>
+<option>Planalto</option>
+<option>Platina</option>
+<option>Poá</option>
+<option>Poloni</option>
+<option>Pompéia</option>
+<option>Pongaí</option>
+<option>Pontal</option>
+<option>Pontalinda</option>
+<option>Pontes Gestal</option>
+<option>Populina</option>
+<option>Porangaba</option>
+<option>Porto Feliz</option>
+<option>Porto Ferreira</option>
+<option>Potim</option>
+<option>Potirendaba</option>
+<option>Pradópolis</option>
+<option>Praia Grande</option>
+<option>Pratânia</option>
+<option>Presidente Alves</option>
+<option>Presidente Bernardes</option>
+<option>Presidente Epitácio</option>
+<option>Presidente Prudente</option>
+<option>Presidente Venceslau</option>
+<option>Promissão</option>
+<option>Quadra</option>
+<option>Quatá</option>
+<option>Queiroz</option>
+<option>Queluz</option>
+<option>Quintana</option>
+<option>Rafard</option>
+<option>Rancharia</option>
+<option>Redenção da Serra</option>
+<option>Regente Feijó</option>
+<option>Reginópolis</option>
+<option>Registro</option>
+<option>Restinga</option>
+<option>Ribeira</option>
+<option>Ribeirão Bonito</option>
+<option>Ribeirão Branco</option>
+<option>Ribeirão Grande</option>
+<option>Ribeirão Pires</option>
+<option>Ribeirão Preto</option>
+<option>Rifaina</option>
+<option>Rincão</option>
+<option>Rinópolis</option>
+<option>Rio Claro</option>
+<option>Rio das Pedras</option>
+<option>Rio Grande da Serra</option>
+<option>Riolândia</option>
+<option>Riversul</option>
+<option>Rosana</option>
+<option>Roseira</option>
+<option>Rubiácea</option>
+<option>Rubinéia</option>
+<option>Sabino</option>
+<option>Sagres</option>
+<option>Sales</option>
+<option>Sales Oliveira</option>
+<option>Salesópolis</option>
+<option>Salmourão</option>
+<option>Salto</option>
+<option>Salto de Pirapora</option>
+<option>Salto Grande</option>
+<option>Sandovalina</option>
+<option>Santa Adélia</option>
+<option>Santa Albertina</option>
+<option>Santa Bárbara d'Oeste</option>
+<option>Santa Branca</option>
+<option>Santa Clara d'Oeste</option>
+<option>Santa Cruz da Conceição</option>
+<option>Santa Cruz da Esperança</option>
+<option>Santa Cruz das Palmeiras</option>
+<option>Santa Cruz do Rio Pardo</option>
+<option>Santa Ernestina</option>
+<option>Santa Fé do Sul</option>
+<option>Santa Gertrudes</option>
+<option>Santa Isabel</option>
+<option>Santa Lúcia</option>
+<option>Santa Maria da Serra</option>
+<option>Santa Mercedes</option>
+<option>Santa Rita d'Oeste</option>
+<option>Santa Rita do Passa Quatro</option>
+<option>Santa Rosa de Viterbo</option>
+<option>Santa Salete</option>
+<option>Santana da Ponte Pensa</option>
+<option>Santana de Parnaíba</option>
+<option>Santo Anastácio</option>
+<option>Santo André</option>
+<option>Santo Antônio da Alegria</option>
+<option>Santo Antônio de Posse</option>
+<option>Santo Antônio do Aracanguá</option>
+<option>Santo Antônio do Jardim</option>
+<option>Santo Antônio do Pinhal</option>
+<option>Santo Expedito</option>
+<option>Santópolis do Aguapeí</option>
+<option>Santos</option>
+<option>São Bento do Sapucaí</option>
+<option>São Bernardo do Campo</option>
+<option>São Caetano do Sul</option>
+<option>São Carlos</option>
+<option>São Francisco</option>
+<option>São João da Boa Vista</option>
+<option>São João das Duas Pontes</option>
+<option>São João de Iracema</option>
+<option>São João do Pau d'Alho</option>
+<option>São Joaquim da Barra</option>
+<option>São José da Bela Vista</option>
+<option>São José do Barreiro</option>
+<option>São José do Rio Pardo</option>
+<option>São José do Rio Preto</option>
+<option>São José dos Campos</option>
+<option>São Lourenço da Serra</option>
+<option>São Luís do Paraitinga</option>
+<option>São Manuel</option>
+<option>São Miguel Arcanjo</option>
+<option>São Paulo</option>
+<option>São Pedro</option>
+<option>São Pedro do Turvo</option>
+<option>São Roque</option>
+<option>São Sebastião</option>
+<option>São Sebastião da Grama</option>
+<option>São Simão</option>
+<option>São Vicente</option>
+<option>Sarapuí</option>
+<option>Sarutaiá</option>
+<option>Sebastianópolis do Sul</option>
+<option>Serra Azul</option>
+<option>Serra Negra</option>
+<option>Serrana</option>
+<option>Sertãozinho</option>
+<option>Sete Barras</option>
+<option>Severínia</option>
+<option>Silveiras</option>
+<option>Socorro</option>
+<option>Sorocaba</option>
+<option>Sud Mennucci</option>
+<option>Sumaré</option>
+<option>Suzanápolis</option>
+<option>Suzano</option>
+<option>Tabapuã</option>
+<option>Tabatinga</option>
+<option>Taboão da Serra</option>
+<option>Taciba</option>
+<option>Taguaí</option>
+<option>Taiaçu</option>
+<option>Taiúva</option>
+<option>Tambaú</option>
+<option>Tanabi</option>
+<option>Tapiraí</option>
+<option>Tapiratiba</option>
+<option>Taquaral</option>
+<option>Taquaritinga</option>
+<option>Taquarituba</option>
+<option>Taquarivaí</option>
+<option>Tarabai</option>
+<option>Tarumã</option>
+<option>Tatuí</option>
+<option>Taubaté</option>
+<option>Tejupá</option>
+<option>Teodoro Sampaio</option>
+<option>Terra Roxa</option>
+<option>Tietê</option>
+<option>Timburi</option>
+<option>Torre de Pedra</option>
+<option>Torrinha</option>
+<option>Trabiju</option>
+<option>Tremembé</option>
+<option>Três Fronteiras</option>
+<option>Tuiuti</option>
+<option>Tupã</option>
+<option>Tupi Paulista</option>
+<option>Turiúba</option>
+<option>Turmalina</option>
+<option>Ubarana</option>
+<option>Ubatuba</option>
+<option>Ubirajara</option>
+<option>Uchoa</option>
+<option>União Paulista</option>
+<option>Urânia</option>
+<option>Uru</option>
+<option>Urupês</option>
+<option>Valentim Gentil</option>
+<option>Valinhos</option>
+<option>Valparaíso</option>
+<option>Vargem</option>
+<option>Vargem Grande do Sul</option>
+<option>Vargem Grande Paulista</option>
+<option>Várzea Paulista</option>
+<option>Vera Cruz</option>
+<option>Vinhedo</option>
+<option>Viradouro</option>
+<option>Vista Alegre do Alto</option>
+<option>Vitória Brasil</option>
+<option>Votorantim</option>
+<option>Votuporanga</option>
+<option>Zacarias</option></select></div>
+            <div class="field-group"><label>Locais de Socorro</label><input type="text" id="f-socorro" placeholder="Ex: PS de…"></div>
           </div>
         </div>
 
-        <!-- OPM ENVOLVIDA -->
+        <!-- OPM -->
         <div class="form-card">
           <div class="form-section-title">🏛️ OPM Envolvida</div>
           <div class="form-grid">
-            <div class="field-group">
-              <label>Btl</label>
-              <select id="f-btl"><option value="">Selecione…</option></select>
+            <div class="field-group"><label>Btl</label><select id="f-btl"><option value="">Selecione…</option></select></div>
+            <div class="field-group"><label>Cia</label><select id="f-cia"><option value="">Selecione…</option></select></div>
+            <div class="field-group"><label>Pel</label><select id="f-pel"><option value="">Selecione…</option></select></div>
+            <div class="field-group"><label>Horário de Serviço</label><input type="time" id="f-horario"></div>
+            <div class="field-group"><label>DP</label><input type="text" id="f-dp" placeholder="Ex: 1º DP Araraquara"></div>
+          </div>
+          <div style="margin-top:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
+              <span style="font-size:11px;color:var(--txt2);text-transform:uppercase;letter-spacing:1px;font-weight:600">Equipes</span>
+              <button type="button" class="btn btn-success btn-sm" onclick="adicionarEquipe()">+ Adicionar Equipe</button>
             </div>
-            <div class="field-group">
-              <label>Cia</label>
-              <select id="f-cia"><option value="">Selecione…</option></select>
-            </div>
-            <div class="field-group">
-              <label>Pel</label>
-              <select id="f-pel"><option value="">Selecione…</option></select>
-            </div>
-            <div class="field-group">
-              <label>Horário de Serviço</label>
-              <input type="time" id="f-horario">
-            </div>
-            <div class="field-group full">
-              <label>Unidades de Serviço que Atenderam</label>
-              <input type="text" id="f-unidades-pol" placeholder="Cb PM, Sd PM…">
-            </div>
-            <div class="field-group">
-              <label>Vtr</label>
-              <input type="text" id="f-vtr" placeholder="Ex: R-03128">
-            </div>
-            <div class="field-group">
-              <label>DP</label>
-              <input type="text" id="f-dp" placeholder="Ex: 1º DP Araraquara">
-            </div>
+            <div class="equipes-container" id="equipes-container"></div>
           </div>
         </div>
 
@@ -379,107 +2901,1020 @@
             <div class="cat-tab active" onclick="selecionarCategoria('transito',this)">🚗 Sinistro de Trânsito</div>
             <div class="cat-tab" onclick="selecionarCategoria('criminal',this)">⚖️ Criminal</div>
             <div class="cat-tab" onclick="selecionarCategoria('manifestacao',this)">📢 Manifestação</div>
-            <div class="cat-tab" onclick="selecionarCategoria('interdicao',this)">🚧 Interdição de Rodovia</div>
+            <div class="cat-tab" onclick="selecionarCategoria('interdicao',this)">🚧 Interdição</div>
           </div>
 
           <!-- TRÂNSITO -->
           <div class="cat-panel active" id="panel-transito">
             <div class="form-grid">
-              <div class="field-group">
-                <label>Qtd. Vítimas (fatais, graves, leves)</label>
-                <input type="text" id="f-t-vitimas-qtd" placeholder="Ex: 01 (uma) vítima fatal">
+              <div class="field-group"><label>Vítimas Fatais</label><select id="f-t-fatais"><option>0</option><option>0</option>
+<option>1</option>
+<option>2</option>
+<option>3</option>
+<option>4</option>
+<option>5</option>
+<option>6</option>
+<option>7</option>
+<option>8</option>
+<option>9</option>
+<option>10</option>
+<option>11</option>
+<option>12</option>
+<option>13</option>
+<option>14</option>
+<option>15</option>
+<option>16</option>
+<option>17</option>
+<option>18</option>
+<option>19</option>
+<option>20</option>
+<option>21</option>
+<option>22</option>
+<option>23</option>
+<option>24</option>
+<option>25</option>
+<option>26</option>
+<option>27</option>
+<option>28</option>
+<option>29</option>
+<option>30</option>
+<option>31</option>
+<option>32</option>
+<option>33</option>
+<option>34</option>
+<option>35</option>
+<option>36</option>
+<option>37</option>
+<option>38</option>
+<option>39</option>
+<option>40</option>
+<option>41</option>
+<option>42</option>
+<option>43</option>
+<option>44</option>
+<option>45</option>
+<option>46</option>
+<option>47</option>
+<option>48</option>
+<option>49</option>
+<option>50</option></select></div>
+              <div class="field-group"><label>Vítimas Graves</label><select id="f-t-graves"><option>0</option><option>0</option>
+<option>1</option>
+<option>2</option>
+<option>3</option>
+<option>4</option>
+<option>5</option>
+<option>6</option>
+<option>7</option>
+<option>8</option>
+<option>9</option>
+<option>10</option>
+<option>11</option>
+<option>12</option>
+<option>13</option>
+<option>14</option>
+<option>15</option>
+<option>16</option>
+<option>17</option>
+<option>18</option>
+<option>19</option>
+<option>20</option>
+<option>21</option>
+<option>22</option>
+<option>23</option>
+<option>24</option>
+<option>25</option>
+<option>26</option>
+<option>27</option>
+<option>28</option>
+<option>29</option>
+<option>30</option>
+<option>31</option>
+<option>32</option>
+<option>33</option>
+<option>34</option>
+<option>35</option>
+<option>36</option>
+<option>37</option>
+<option>38</option>
+<option>39</option>
+<option>40</option>
+<option>41</option>
+<option>42</option>
+<option>43</option>
+<option>44</option>
+<option>45</option>
+<option>46</option>
+<option>47</option>
+<option>48</option>
+<option>49</option>
+<option>50</option></select></div>
+              <div class="field-group"><label>Vítimas Leves</label><select id="f-t-leves"><option>0</option><option>0</option>
+<option>1</option>
+<option>2</option>
+<option>3</option>
+<option>4</option>
+<option>5</option>
+<option>6</option>
+<option>7</option>
+<option>8</option>
+<option>9</option>
+<option>10</option>
+<option>11</option>
+<option>12</option>
+<option>13</option>
+<option>14</option>
+<option>15</option>
+<option>16</option>
+<option>17</option>
+<option>18</option>
+<option>19</option>
+<option>20</option>
+<option>21</option>
+<option>22</option>
+<option>23</option>
+<option>24</option>
+<option>25</option>
+<option>26</option>
+<option>27</option>
+<option>28</option>
+<option>29</option>
+<option>30</option>
+<option>31</option>
+<option>32</option>
+<option>33</option>
+<option>34</option>
+<option>35</option>
+<option>36</option>
+<option>37</option>
+<option>38</option>
+<option>39</option>
+<option>40</option>
+<option>41</option>
+<option>42</option>
+<option>43</option>
+<option>44</option>
+<option>45</option>
+<option>46</option>
+<option>47</option>
+<option>48</option>
+<option>49</option>
+<option>50</option></select></div>
+              <div class="field-group"><label>Ilesos</label><select id="f-t-ilesos"><option>0</option><option>0</option>
+<option>1</option>
+<option>2</option>
+<option>3</option>
+<option>4</option>
+<option>5</option>
+<option>6</option>
+<option>7</option>
+<option>8</option>
+<option>9</option>
+<option>10</option>
+<option>11</option>
+<option>12</option>
+<option>13</option>
+<option>14</option>
+<option>15</option>
+<option>16</option>
+<option>17</option>
+<option>18</option>
+<option>19</option>
+<option>20</option>
+<option>21</option>
+<option>22</option>
+<option>23</option>
+<option>24</option>
+<option>25</option>
+<option>26</option>
+<option>27</option>
+<option>28</option>
+<option>29</option>
+<option>30</option>
+<option>31</option>
+<option>32</option>
+<option>33</option>
+<option>34</option>
+<option>35</option>
+<option>36</option>
+<option>37</option>
+<option>38</option>
+<option>39</option>
+<option>40</option>
+<option>41</option>
+<option>42</option>
+<option>43</option>
+<option>44</option>
+<option>45</option>
+<option>46</option>
+<option>47</option>
+<option>48</option>
+<option>49</option>
+<option>50</option></select></div>
+              <div class="field-group"><label>AP</label><select id="f-t-ap"><option>0</option><option>0</option>
+<option>1</option>
+<option>2</option>
+<option>3</option>
+<option>4</option>
+<option>5</option>
+<option>6</option>
+<option>7</option>
+<option>8</option>
+<option>9</option>
+<option>10</option>
+<option>11</option>
+<option>12</option>
+<option>13</option>
+<option>14</option>
+<option>15</option>
+<option>16</option>
+<option>17</option>
+<option>18</option>
+<option>19</option>
+<option>20</option>
+<option>21</option>
+<option>22</option>
+<option>23</option>
+<option>24</option>
+<option>25</option>
+<option>26</option>
+<option>27</option>
+<option>28</option>
+<option>29</option>
+<option>30</option></select></div>
+              <div class="field-group"><label>Moto</label><select id="f-t-moto"><option>0</option><option>0</option>
+<option>1</option>
+<option>2</option>
+<option>3</option>
+<option>4</option>
+<option>5</option>
+<option>6</option>
+<option>7</option>
+<option>8</option>
+<option>9</option>
+<option>10</option>
+<option>11</option>
+<option>12</option>
+<option>13</option>
+<option>14</option>
+<option>15</option>
+<option>16</option>
+<option>17</option>
+<option>18</option>
+<option>19</option>
+<option>20</option>
+<option>21</option>
+<option>22</option>
+<option>23</option>
+<option>24</option>
+<option>25</option>
+<option>26</option>
+<option>27</option>
+<option>28</option>
+<option>29</option>
+<option>30</option></select></div>
+              <div class="field-group"><label>CA</label><select id="f-t-ca"><option>0</option><option>0</option>
+<option>1</option>
+<option>2</option>
+<option>3</option>
+<option>4</option>
+<option>5</option>
+<option>6</option>
+<option>7</option>
+<option>8</option>
+<option>9</option>
+<option>10</option>
+<option>11</option>
+<option>12</option>
+<option>13</option>
+<option>14</option>
+<option>15</option>
+<option>16</option>
+<option>17</option>
+<option>18</option>
+<option>19</option>
+<option>20</option>
+<option>21</option>
+<option>22</option>
+<option>23</option>
+<option>24</option>
+<option>25</option>
+<option>26</option>
+<option>27</option>
+<option>28</option>
+<option>29</option>
+<option>30</option></select></div>
+              <div class="field-group"><label>OA</label><select id="f-t-oa"><option>0</option><option>0</option>
+<option>1</option>
+<option>2</option>
+<option>3</option>
+<option>4</option>
+<option>5</option>
+<option>6</option>
+<option>7</option>
+<option>8</option>
+<option>9</option>
+<option>10</option>
+<option>11</option>
+<option>12</option>
+<option>13</option>
+<option>14</option>
+<option>15</option>
+<option>16</option>
+<option>17</option>
+<option>18</option>
+<option>19</option>
+<option>20</option>
+<option>21</option>
+<option>22</option>
+<option>23</option>
+<option>24</option>
+<option>25</option>
+<option>26</option>
+<option>27</option>
+<option>28</option>
+<option>29</option>
+<option>30</option></select></div>
+              <div class="field-group"><label>Outros Veículos</label><select id="f-t-outros-veic"><option>0</option><option>0</option>
+<option>1</option>
+<option>2</option>
+<option>3</option>
+<option>4</option>
+<option>5</option>
+<option>6</option>
+<option>7</option>
+<option>8</option>
+<option>9</option>
+<option>10</option>
+<option>11</option>
+<option>12</option>
+<option>13</option>
+<option>14</option>
+<option>15</option>
+<option>16</option>
+<option>17</option>
+<option>18</option>
+<option>19</option>
+<option>20</option>
+<option>21</option>
+<option>22</option>
+<option>23</option>
+<option>24</option>
+<option>25</option>
+<option>26</option>
+<option>27</option>
+<option>28</option>
+<option>29</option>
+<option>30</option></select></div>
+              <div class="field-group"><label>Pista</label><select id="f-t-pista-cond"><option value="">Selecione…</option><option>Simples</option><option>Dupla</option></select></div>
+              <div class="field-group"><label>Tempo</label><select id="f-t-tempo"><option value="">Selecione…</option><option>Bom</option><option>Chuvoso</option><option>Neblina</option><option>Cerração</option></select></div>
+              <div class="field-group"><label>Pavimento</label><select id="f-t-pavimento"><option value="">Selecione…</option><option>Seco</option><option>Molhado</option><option>Lama</option><option>Óleo</option></select></div>
+              <div class="field-group full"><label>Tipo de Sinistro</label>
+                <select id="f-t-tipo-sinistro"><option value="">Selecione…</option><option>Capotamento</option><option>Tombamento</option><option>Colisão Frontal</option><option>Colisão Traseira</option><option>Colisão Lateral</option><option>Colisão Transversal</option><option>Choque</option><option>Atropelamento Animal</option><option>Atropelamento de Pedestre</option><option>Engavetamento</option></select>
               </div>
-              <div class="field-group">
-                <label>Qtd. Veículos Envolvidos</label>
-                <input type="text" id="f-t-veiculos-qtd" placeholder="Ex: 01 (uma) motocicleta">
-              </div>
-              <div class="field-group full">
-                <label>Descrição Via e Condições Climáticas</label>
-                <input type="text" id="f-t-via" placeholder="Ex: Pista simples, tempo bom, pista seca">
-              </div>
-              <div class="field-group">
-                <label>Vítimas em Óbito</label>
-                <input type="text" id="f-t-obito" placeholder="Ex: A qualificar">
-              </div>
-              <div class="field-group">
-                <label>Tipo de Sinistro</label>
-                <input type="text" id="f-t-tipo-sinistro" placeholder="Ex: Capotamento, Choque">
-              </div>
+              <div class="field-group full"><label>Vítimas em Óbito</label><input type="text" id="f-t-obito" placeholder="Ex: A qualificar"></div>
             </div>
           </div>
 
           <!-- CRIMINAL -->
           <div class="cat-panel" id="panel-criminal">
             <div class="form-grid">
-              <div class="field-group">
-                <label>Qtd. Vítimas (fatais, graves, leves, ilesas)</label>
-                <input type="text" id="f-c-vitimas-qtd" placeholder="Ex: 01 (uma) vítima fatal">
-              </div>
-              <div class="field-group">
-                <label>Qtd. Veículos Envolvidos</label>
-                <input type="text" id="f-c-veiculos-qtd" placeholder="Ex: 01 (uma) motocicleta">
-              </div>
-              <div class="field-group full">
-                <label>Descrição de Materiais/Objetos/Substâncias Apreendidos</label>
-                <input type="text" id="f-c-apreendidos" placeholder="Ex: 500g de maconha, 1 faca">
-              </div>
-              <div class="field-group full">
-                <label>Descrição Materiais/Objetos/Substâncias Subtraídos</label>
-                <input type="text" id="f-c-subtraidos" placeholder="Ex: 01 aparelho celular, R$ 500,00">
-              </div>
-              <div class="field-group">
-                <label>Qtd. Pessoas Presas</label>
-                <input type="text" id="f-c-presos" placeholder="Ex: 01 Procurado, 01 Autor">
-              </div>
-              <div class="field-group">
-                <label>Qtd. Armas/Munição Apreendidas</label>
-                <input type="text" id="f-c-armas" placeholder="Ex: 01 revólver cal. 38 com 5 munições">
-              </div>
+              <div class="field-group"><label>Vítimas Fatais</label><select id="f-c-fatais"><option>0</option><option>0</option>
+<option>1</option>
+<option>2</option>
+<option>3</option>
+<option>4</option>
+<option>5</option>
+<option>6</option>
+<option>7</option>
+<option>8</option>
+<option>9</option>
+<option>10</option>
+<option>11</option>
+<option>12</option>
+<option>13</option>
+<option>14</option>
+<option>15</option>
+<option>16</option>
+<option>17</option>
+<option>18</option>
+<option>19</option>
+<option>20</option>
+<option>21</option>
+<option>22</option>
+<option>23</option>
+<option>24</option>
+<option>25</option>
+<option>26</option>
+<option>27</option>
+<option>28</option>
+<option>29</option>
+<option>30</option>
+<option>31</option>
+<option>32</option>
+<option>33</option>
+<option>34</option>
+<option>35</option>
+<option>36</option>
+<option>37</option>
+<option>38</option>
+<option>39</option>
+<option>40</option>
+<option>41</option>
+<option>42</option>
+<option>43</option>
+<option>44</option>
+<option>45</option>
+<option>46</option>
+<option>47</option>
+<option>48</option>
+<option>49</option>
+<option>50</option></select></div>
+              <div class="field-group"><label>Vítimas Graves</label><select id="f-c-graves"><option>0</option><option>0</option>
+<option>1</option>
+<option>2</option>
+<option>3</option>
+<option>4</option>
+<option>5</option>
+<option>6</option>
+<option>7</option>
+<option>8</option>
+<option>9</option>
+<option>10</option>
+<option>11</option>
+<option>12</option>
+<option>13</option>
+<option>14</option>
+<option>15</option>
+<option>16</option>
+<option>17</option>
+<option>18</option>
+<option>19</option>
+<option>20</option>
+<option>21</option>
+<option>22</option>
+<option>23</option>
+<option>24</option>
+<option>25</option>
+<option>26</option>
+<option>27</option>
+<option>28</option>
+<option>29</option>
+<option>30</option>
+<option>31</option>
+<option>32</option>
+<option>33</option>
+<option>34</option>
+<option>35</option>
+<option>36</option>
+<option>37</option>
+<option>38</option>
+<option>39</option>
+<option>40</option>
+<option>41</option>
+<option>42</option>
+<option>43</option>
+<option>44</option>
+<option>45</option>
+<option>46</option>
+<option>47</option>
+<option>48</option>
+<option>49</option>
+<option>50</option></select></div>
+              <div class="field-group"><label>Vítimas Leves</label><select id="f-c-leves"><option>0</option><option>0</option>
+<option>1</option>
+<option>2</option>
+<option>3</option>
+<option>4</option>
+<option>5</option>
+<option>6</option>
+<option>7</option>
+<option>8</option>
+<option>9</option>
+<option>10</option>
+<option>11</option>
+<option>12</option>
+<option>13</option>
+<option>14</option>
+<option>15</option>
+<option>16</option>
+<option>17</option>
+<option>18</option>
+<option>19</option>
+<option>20</option>
+<option>21</option>
+<option>22</option>
+<option>23</option>
+<option>24</option>
+<option>25</option>
+<option>26</option>
+<option>27</option>
+<option>28</option>
+<option>29</option>
+<option>30</option>
+<option>31</option>
+<option>32</option>
+<option>33</option>
+<option>34</option>
+<option>35</option>
+<option>36</option>
+<option>37</option>
+<option>38</option>
+<option>39</option>
+<option>40</option>
+<option>41</option>
+<option>42</option>
+<option>43</option>
+<option>44</option>
+<option>45</option>
+<option>46</option>
+<option>47</option>
+<option>48</option>
+<option>49</option>
+<option>50</option></select></div>
+              <div class="field-group"><label>Ilesos</label><select id="f-c-ilesos"><option>0</option><option>0</option>
+<option>1</option>
+<option>2</option>
+<option>3</option>
+<option>4</option>
+<option>5</option>
+<option>6</option>
+<option>7</option>
+<option>8</option>
+<option>9</option>
+<option>10</option>
+<option>11</option>
+<option>12</option>
+<option>13</option>
+<option>14</option>
+<option>15</option>
+<option>16</option>
+<option>17</option>
+<option>18</option>
+<option>19</option>
+<option>20</option>
+<option>21</option>
+<option>22</option>
+<option>23</option>
+<option>24</option>
+<option>25</option>
+<option>26</option>
+<option>27</option>
+<option>28</option>
+<option>29</option>
+<option>30</option>
+<option>31</option>
+<option>32</option>
+<option>33</option>
+<option>34</option>
+<option>35</option>
+<option>36</option>
+<option>37</option>
+<option>38</option>
+<option>39</option>
+<option>40</option>
+<option>41</option>
+<option>42</option>
+<option>43</option>
+<option>44</option>
+<option>45</option>
+<option>46</option>
+<option>47</option>
+<option>48</option>
+<option>49</option>
+<option>50</option></select></div>
+              <div class="field-group"><label>AP</label><select id="f-c-ap"><option>0</option><option>0</option>
+<option>1</option>
+<option>2</option>
+<option>3</option>
+<option>4</option>
+<option>5</option>
+<option>6</option>
+<option>7</option>
+<option>8</option>
+<option>9</option>
+<option>10</option>
+<option>11</option>
+<option>12</option>
+<option>13</option>
+<option>14</option>
+<option>15</option>
+<option>16</option>
+<option>17</option>
+<option>18</option>
+<option>19</option>
+<option>20</option>
+<option>21</option>
+<option>22</option>
+<option>23</option>
+<option>24</option>
+<option>25</option>
+<option>26</option>
+<option>27</option>
+<option>28</option>
+<option>29</option>
+<option>30</option></select></div>
+              <div class="field-group"><label>Moto</label><select id="f-c-moto"><option>0</option><option>0</option>
+<option>1</option>
+<option>2</option>
+<option>3</option>
+<option>4</option>
+<option>5</option>
+<option>6</option>
+<option>7</option>
+<option>8</option>
+<option>9</option>
+<option>10</option>
+<option>11</option>
+<option>12</option>
+<option>13</option>
+<option>14</option>
+<option>15</option>
+<option>16</option>
+<option>17</option>
+<option>18</option>
+<option>19</option>
+<option>20</option>
+<option>21</option>
+<option>22</option>
+<option>23</option>
+<option>24</option>
+<option>25</option>
+<option>26</option>
+<option>27</option>
+<option>28</option>
+<option>29</option>
+<option>30</option></select></div>
+              <div class="field-group"><label>CA</label><select id="f-c-ca"><option>0</option><option>0</option>
+<option>1</option>
+<option>2</option>
+<option>3</option>
+<option>4</option>
+<option>5</option>
+<option>6</option>
+<option>7</option>
+<option>8</option>
+<option>9</option>
+<option>10</option>
+<option>11</option>
+<option>12</option>
+<option>13</option>
+<option>14</option>
+<option>15</option>
+<option>16</option>
+<option>17</option>
+<option>18</option>
+<option>19</option>
+<option>20</option>
+<option>21</option>
+<option>22</option>
+<option>23</option>
+<option>24</option>
+<option>25</option>
+<option>26</option>
+<option>27</option>
+<option>28</option>
+<option>29</option>
+<option>30</option></select></div>
+              <div class="field-group"><label>OA</label><select id="f-c-oa"><option>0</option><option>0</option>
+<option>1</option>
+<option>2</option>
+<option>3</option>
+<option>4</option>
+<option>5</option>
+<option>6</option>
+<option>7</option>
+<option>8</option>
+<option>9</option>
+<option>10</option>
+<option>11</option>
+<option>12</option>
+<option>13</option>
+<option>14</option>
+<option>15</option>
+<option>16</option>
+<option>17</option>
+<option>18</option>
+<option>19</option>
+<option>20</option>
+<option>21</option>
+<option>22</option>
+<option>23</option>
+<option>24</option>
+<option>25</option>
+<option>26</option>
+<option>27</option>
+<option>28</option>
+<option>29</option>
+<option>30</option></select></div>
+              <div class="field-group"><label>Outros Veículos</label><select id="f-c-outros-veic"><option>0</option><option>0</option>
+<option>1</option>
+<option>2</option>
+<option>3</option>
+<option>4</option>
+<option>5</option>
+<option>6</option>
+<option>7</option>
+<option>8</option>
+<option>9</option>
+<option>10</option>
+<option>11</option>
+<option>12</option>
+<option>13</option>
+<option>14</option>
+<option>15</option>
+<option>16</option>
+<option>17</option>
+<option>18</option>
+<option>19</option>
+<option>20</option>
+<option>21</option>
+<option>22</option>
+<option>23</option>
+<option>24</option>
+<option>25</option>
+<option>26</option>
+<option>27</option>
+<option>28</option>
+<option>29</option>
+<option>30</option></select></div>
+              <div class="field-group full"><label>Mat./Obj./Substâncias Apreendidos</label><input type="text" id="f-c-apreendidos" placeholder="Ex: 500g de maconha"></div>
+              <div class="field-group full"><label>Mat./Obj./Substâncias Subtraídos</label><input type="text" id="f-c-subtraidos" placeholder="Ex: 01 aparelho celular"></div>
+              <div class="field-group"><label>Qtd. Pessoas Presas</label><input type="text" id="f-c-presos" placeholder="Ex: 01 Autor"></div>
+              <div class="field-group"><label>Qtd. Armas/Munição Apreendidas</label><input type="text" id="f-c-armas" placeholder="Ex: 01 revólver cal. 38"></div>
             </div>
           </div>
 
           <!-- MANIFESTAÇÃO -->
           <div class="cat-panel" id="panel-manifestacao">
             <div class="form-grid">
-              <div class="field-group">
-                <label>Qtd. de Manifestantes Envolvidos</label>
-                <input type="text" id="f-m-manifestantes" placeholder="Ex: Aproximadamente 200">
-              </div>
-              <div class="field-group">
-                <label>Qtd. Veículos Envolvidos</label>
-                <input type="text" id="f-m-veiculos-qtd" placeholder="Ex: 15 caminhões">
-              </div>
-              <div class="field-group full">
-                <label>Descrição do Motivo da Manifestação</label>
-                <input type="text" id="f-m-motivo" placeholder="Ex: Greve, Protesto">
-              </div>
-              <div class="field-group">
-                <label>Responsável pela Manifestação</label>
-                <input type="text" id="f-m-responsavel" placeholder="Ex: A qualificar">
-              </div>
-              <div class="field-group">
-                <label>Rodovia Interditada</label>
-                <select id="f-m-interdicao">
-                  <option value="">Selecione…</option>
-                  <option>Sim — Total</option>
-                  <option>Sim — Parcial</option>
-                  <option>Não</option>
-                </select>
-              </div>
+              <div class="field-group"><label>AP</label><select id="f-m-ap"><option>0</option><option>0</option>
+<option>1</option>
+<option>2</option>
+<option>3</option>
+<option>4</option>
+<option>5</option>
+<option>6</option>
+<option>7</option>
+<option>8</option>
+<option>9</option>
+<option>10</option>
+<option>11</option>
+<option>12</option>
+<option>13</option>
+<option>14</option>
+<option>15</option>
+<option>16</option>
+<option>17</option>
+<option>18</option>
+<option>19</option>
+<option>20</option>
+<option>21</option>
+<option>22</option>
+<option>23</option>
+<option>24</option>
+<option>25</option>
+<option>26</option>
+<option>27</option>
+<option>28</option>
+<option>29</option>
+<option>30</option></select></div>
+              <div class="field-group"><label>Moto</label><select id="f-m-moto"><option>0</option><option>0</option>
+<option>1</option>
+<option>2</option>
+<option>3</option>
+<option>4</option>
+<option>5</option>
+<option>6</option>
+<option>7</option>
+<option>8</option>
+<option>9</option>
+<option>10</option>
+<option>11</option>
+<option>12</option>
+<option>13</option>
+<option>14</option>
+<option>15</option>
+<option>16</option>
+<option>17</option>
+<option>18</option>
+<option>19</option>
+<option>20</option>
+<option>21</option>
+<option>22</option>
+<option>23</option>
+<option>24</option>
+<option>25</option>
+<option>26</option>
+<option>27</option>
+<option>28</option>
+<option>29</option>
+<option>30</option></select></div>
+              <div class="field-group"><label>CA</label><select id="f-m-ca"><option>0</option><option>0</option>
+<option>1</option>
+<option>2</option>
+<option>3</option>
+<option>4</option>
+<option>5</option>
+<option>6</option>
+<option>7</option>
+<option>8</option>
+<option>9</option>
+<option>10</option>
+<option>11</option>
+<option>12</option>
+<option>13</option>
+<option>14</option>
+<option>15</option>
+<option>16</option>
+<option>17</option>
+<option>18</option>
+<option>19</option>
+<option>20</option>
+<option>21</option>
+<option>22</option>
+<option>23</option>
+<option>24</option>
+<option>25</option>
+<option>26</option>
+<option>27</option>
+<option>28</option>
+<option>29</option>
+<option>30</option></select></div>
+              <div class="field-group"><label>OA</label><select id="f-m-oa"><option>0</option><option>0</option>
+<option>1</option>
+<option>2</option>
+<option>3</option>
+<option>4</option>
+<option>5</option>
+<option>6</option>
+<option>7</option>
+<option>8</option>
+<option>9</option>
+<option>10</option>
+<option>11</option>
+<option>12</option>
+<option>13</option>
+<option>14</option>
+<option>15</option>
+<option>16</option>
+<option>17</option>
+<option>18</option>
+<option>19</option>
+<option>20</option>
+<option>21</option>
+<option>22</option>
+<option>23</option>
+<option>24</option>
+<option>25</option>
+<option>26</option>
+<option>27</option>
+<option>28</option>
+<option>29</option>
+<option>30</option></select></div>
+              <div class="field-group"><label>Outros Veículos</label><select id="f-m-outros-veic"><option>0</option><option>0</option>
+<option>1</option>
+<option>2</option>
+<option>3</option>
+<option>4</option>
+<option>5</option>
+<option>6</option>
+<option>7</option>
+<option>8</option>
+<option>9</option>
+<option>10</option>
+<option>11</option>
+<option>12</option>
+<option>13</option>
+<option>14</option>
+<option>15</option>
+<option>16</option>
+<option>17</option>
+<option>18</option>
+<option>19</option>
+<option>20</option>
+<option>21</option>
+<option>22</option>
+<option>23</option>
+<option>24</option>
+<option>25</option>
+<option>26</option>
+<option>27</option>
+<option>28</option>
+<option>29</option>
+<option>30</option></select></div>
+              <div class="field-group"><label>Qtd. Manifestantes</label><input type="text" id="f-m-manifestantes" placeholder="Ex: Aprox. 200"></div>
+              <div class="field-group full"><label>Motivo da Manifestação</label><input type="text" id="f-m-motivo" placeholder="Ex: Greve, Protesto"></div>
+              <div class="field-group"><label>Responsável pela Manifestação</label><input type="text" id="f-m-responsavel" placeholder="Ex: A qualificar"></div>
+              <div class="field-group"><label>Rodovia Interditada</label><select id="f-m-interdicao"><option value="">Selecione…</option><option>Sim — Total</option><option>Sim — Parcial</option><option>Não</option></select></div>
             </div>
           </div>
 
           <!-- INTERDIÇÃO -->
           <div class="cat-panel" id="panel-interdicao">
             <div class="form-grid">
-              <div class="field-group full">
-                <label>Motivo da Interdição</label>
-                <input type="text" id="f-i-motivo" placeholder="Ex: Descrever o motivo">
-              </div>
-              <div class="field-group">
-                <label>Qtd. Km de Congestionamento</label>
-                <input type="text" id="f-i-km" placeholder="Ex: 12 km">
-              </div>
+              <div class="field-group full"><label>Motivo da Interdição</label><input type="text" id="f-i-motivo" placeholder="Ex: Descrever o motivo"></div>
+              <div class="field-group"><label>Qtd. Km de Congestionamento</label><select id="f-i-km"><option>0</option><option>0</option>
+<option>1</option>
+<option>2</option>
+<option>3</option>
+<option>4</option>
+<option>5</option>
+<option>6</option>
+<option>7</option>
+<option>8</option>
+<option>9</option>
+<option>10</option>
+<option>11</option>
+<option>12</option>
+<option>13</option>
+<option>14</option>
+<option>15</option>
+<option>16</option>
+<option>17</option>
+<option>18</option>
+<option>19</option>
+<option>20</option>
+<option>21</option>
+<option>22</option>
+<option>23</option>
+<option>24</option>
+<option>25</option>
+<option>26</option>
+<option>27</option>
+<option>28</option>
+<option>29</option>
+<option>30</option>
+<option>31</option>
+<option>32</option>
+<option>33</option>
+<option>34</option>
+<option>35</option>
+<option>36</option>
+<option>37</option>
+<option>38</option>
+<option>39</option>
+<option>40</option>
+<option>41</option>
+<option>42</option>
+<option>43</option>
+<option>44</option>
+<option>45</option>
+<option>46</option>
+<option>47</option>
+<option>48</option>
+<option>49</option>
+<option>50</option>
+<option>51</option>
+<option>52</option>
+<option>53</option>
+<option>54</option>
+<option>55</option>
+<option>56</option>
+<option>57</option>
+<option>58</option>
+<option>59</option>
+<option>60</option>
+<option>61</option>
+<option>62</option>
+<option>63</option>
+<option>64</option>
+<option>65</option>
+<option>66</option>
+<option>67</option>
+<option>68</option>
+<option>69</option>
+<option>70</option>
+<option>71</option>
+<option>72</option>
+<option>73</option>
+<option>74</option>
+<option>75</option>
+<option>76</option>
+<option>77</option>
+<option>78</option>
+<option>79</option>
+<option>80</option>
+<option>81</option>
+<option>82</option>
+<option>83</option>
+<option>84</option>
+<option>85</option>
+<option>86</option>
+<option>87</option>
+<option>88</option>
+<option>89</option>
+<option>90</option>
+<option>91</option>
+<option>92</option>
+<option>93</option>
+<option>94</option>
+<option>95</option>
+<option>96</option>
+<option>97</option>
+<option>98</option>
+<option>99</option>
+<option>100</option></select></div>
             </div>
           </div>
         </div>
@@ -488,33 +3923,20 @@
         <div class="form-card">
           <div class="form-section-title">👤 Comando</div>
           <div class="form-grid">
-            <div class="field-group full">
-              <label>Nome Completo CMT CPA/CPI - CBM/CBI</label>
-              <input type="text" id="f-cmt-cpa" placeholder="Posto, Nome completo">
-            </div>
-            <div class="field-group full">
-              <label>Nome Completo CMT BTL/INTERINO - GB</label>
-              <input type="text" id="f-cmt-btl" placeholder="Posto, Nome completo">
-            </div>
-            <div class="field-group full">
-              <label>Nome Completo CMT CIA/INTERINO</label>
-              <input type="text" id="f-cmt-cia-int" placeholder="Posto, Nome completo">
-            </div>
+            <div class="field-group full"><label>Nome Completo CMT CPRv</label><select id="f-cmt-cpa"><option value="">Selecione…</option></select></div>
+            <div class="field-group full"><label>Nome Completo CMT BPRv</label><select id="f-cmt-btl"><option value="">Selecione…</option></select></div>
+            <div class="field-group full"><label>Nome Completo CMT CIA Rv</label><select id="f-cmt-cia-int"><option value="">Selecione…</option></select></div>
           </div>
         </div>
 
-        <!-- REGISTRO / HISTÓRICO -->
+        <!-- REGISTRO -->
         <div class="form-card">
           <div class="form-section-title">📝 Registro e Histórico</div>
           <div class="form-grid">
-            <div class="field-group full">
-              <label>Registro (BO/PM, BO/PC, Sindicância, IPM, Investigação Preliminar)</label>
-              <input type="text" id="f-registro" placeholder="Ex: BO-e Token BO202...">
-            </div>
-            <div class="field-group full">
-              <label>Histórico *</label>
-              <textarea id="f-historico" required placeholder="Breve relato…" style="min-height:140px"></textarea>
-            </div>
+            <div class="field-group"><label>PPRI</label><input type="text" id="f-ppri" placeholder="Ex: PPRI-2026-00001"></div>
+            <div class="field-group"><label>Token</label><input type="text" id="f-token" placeholder="Ex: BO-e Token BO2026…"></div>
+            <div class="field-group"><label>BO/PC</label><input type="text" id="f-bopc" placeholder="Ex: BO-2026-00001"></div>
+            <div class="field-group full"><label>Histórico *</label><textarea id="f-historico" required placeholder="Breve relato…" style="min-height:120px"></textarea></div>
           </div>
         </div>
 
@@ -522,111 +3944,63 @@
         <div class="form-card">
           <div class="form-section-title">🏅 Autoridades</div>
           <div class="form-grid">
-            <div class="field-group full">
-              <label>Autoridades que Comparecerão no Local</label>
-              <input type="text" id="f-autoridades-local" placeholder="Ex: 1º Sgt PM Prado (CGPRv da 1ª Companhia)">
-            </div>
-            <div class="field-group full">
-              <label>Autoridades Cientificadas da Ocorrência</label>
-              <input type="text" id="f-autoridades-cient" placeholder="Ex: 1º Ten PM Vila (Oficial de permanência da 1ª Cia/PM)">
-            </div>
+            <div class="field-group full"><label>Autoridades que Comparecerão no Local</label><input type="text" id="f-autoridades-local" placeholder="Ex: 1º Sgt PM Prado (CGPRv)"></div>
+            <div class="field-group full"><label>Autoridades Cientificadas da Ocorrência</label><input type="text" id="f-autoridades-cient" placeholder="Ex: 1º Ten PM Vila (Oficial de permanência)"></div>
           </div>
         </div>
 
         <!-- STATUS -->
         <div class="form-card">
-          <div class="form-section-title">🔖 Status da Ocorrência</div>
+          <div class="form-section-title">🔖 Status</div>
           <div class="form-grid">
-            <div class="field-group">
-              <label>Status *</label>
-              <select id="f-status" required>
-                <option>Em andamento</option>
-                <option>Concluído</option>
-                <option>Cancelado</option>
-              </select>
-            </div>
+            <div class="field-group"><label>Status *</label><select id="f-status" required><option>Em andamento</option><option>Concluído</option><option>Cancelado</option></select></div>
           </div>
         </div>
 
-        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+        <div style="display:flex;gap:9px;justify-content:flex-end;margin-top:7px;flex-wrap:wrap">
           <button type="button" class="btn btn-ghost" onclick="irPara('listagem')">Cancelar</button>
           <button type="submit" class="btn btn-success" id="btn-salvar">💾 Salvar Ocorrência</button>
         </div>
       </form>
     </div>
 
-    <!-- ADMINISTRAÇÃO -->
+    <!-- ADMIN -->
     <div class="screen" id="screen-admin">
-      <div class="page-header">
-        <div>
-          <div class="page-title">Administração</div>
-          <div class="page-subtitle">Gestão de listas e configurações</div>
-        </div>
-      </div>
-
-      <div class="admin-section">
-        <h3>📋 Natureza do Fato</h3>
-        <div style="display:flex;gap:8px;margin-bottom:16px">
-          <input type="text" id="novo-fato-input" placeholder="Nova natureza do fato…" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--txt);padding:9px 12px;font-family:var(--font-ui);font-size:13px;outline:none">
-          <button class="btn btn-success" onclick="adicionarItem('fatos','novo-fato-input','lista-fatos-admin')">+ Adicionar</button>
-        </div>
-        <ul class="list-manage" id="lista-fatos-admin"></ul>
-      </div>
-
-      <div class="admin-section">
-        <h3>🏛️ Btl</h3>
-        <div style="display:flex;gap:8px;margin-bottom:16px">
-          <input type="text" id="novo-btl-input" placeholder="Ex: 3º BPRv" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--txt);padding:9px 12px;font-family:var(--font-ui);font-size:13px;outline:none">
-          <button class="btn btn-success" onclick="adicionarItem('btls','novo-btl-input','lista-btl-admin')">+ Adicionar</button>
-        </div>
-        <ul class="list-manage" id="lista-btl-admin"></ul>
-      </div>
-
-      <div class="admin-section">
-        <h3>🏛️ Cia</h3>
-        <div style="display:flex;gap:8px;margin-bottom:16px">
-          <input type="text" id="novo-cia-input" placeholder="Ex: 1ª Cia" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--txt);padding:9px 12px;font-family:var(--font-ui);font-size:13px;outline:none">
-          <button class="btn btn-success" onclick="adicionarItem('cias','novo-cia-input','lista-cia-admin')">+ Adicionar</button>
-        </div>
-        <ul class="list-manage" id="lista-cia-admin"></ul>
-      </div>
-
-      <div class="admin-section">
-        <h3>🏛️ Pel</h3>
-        <div style="display:flex;gap:8px;margin-bottom:16px">
-          <input type="text" id="novo-pel-input" placeholder="Ex: 3º Pelotão" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--txt);padding:9px 12px;font-family:var(--font-ui);font-size:13px;outline:none">
-          <button class="btn btn-success" onclick="adicionarItem('pels','novo-pel-input','lista-pel-admin')">+ Adicionar</button>
-        </div>
-        <ul class="list-manage" id="lista-pel-admin"></ul>
-      </div>
-
+      <div class="page-header"><div><div class="page-title">Administração</div><div class="page-subtitle">Gestão de listas</div></div></div>
+      <div id="admin-sections"></div>
       <div class="admin-section">
         <h3>👥 Usuários / Unidades</h3>
-        <p style="font-size:13px;color:var(--txt3)">Gerenciamento via console Firebase Authentication: <strong style="color:var(--accent2)">console.firebase.google.com</strong></p>
+        <p style="font-size:13px;color:var(--txt3)">Gerenciamento via Firebase Authentication: <strong style="color:var(--accent2)">console.firebase.google.com</strong></p>
       </div>
     </div>
 
   </div>
 </div>
 
-<!-- MODAL -->
 <div class="modal-backdrop" id="modal-backdrop">
   <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title" id="modal-titulo">Ocorrência</div>
-      <button class="modal-close" onclick="fecharModal()">✕</button>
-    </div>
+    <div class="modal-header"><div class="modal-title" id="modal-titulo">Ocorrência</div><button class="modal-close" onclick="fecharModal()">✕</button></div>
     <div id="modal-body"></div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px" id="modal-actions"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap" id="modal-actions"></div>
   </div>
 </div>
-
 <div id="toast"></div>
 
 <script>
-let ocorrencias=[],fatos=[],btls=[],cias=[],pels=[];
-let usuarioAtual=null,isAdmin=false,editandoId=null,categoriaAtual='transito';
+let ocorrencias=[],fatos=[],btls=[],cias=[],pels=[],rodovias=[],cmtsCprv=[],cmtsBprv=[],cmtsCia=[];
+let usuarioAtual=null,isAdmin=false,editandoId=null,categoriaAtual='transito',equipeCount=0;
 const ADMINS=['ejmurta@gmail.com'];
+
+const COLECOES_ADMIN=[
+  {id:'fatos',  label:'📋 Natureza do Fato',  sel:'f-fato',    lista:()=>fatos},
+  {id:'rodovias',label:'🛣️ SP/SPA/SPI/SPD',  sel:'f-rodovia', lista:()=>rodovias},
+  {id:'btls',   label:'🏛️ Btl',              sel:'f-btl',     lista:()=>btls},
+  {id:'cias',   label:'🏛️ Cia',              sel:'f-cia',     lista:()=>cias},
+  {id:'pels',   label:'🏛️ Pel',              sel:'f-pel',     lista:()=>pels},
+  {id:'cmtsCprv',label:'👤 CMT CPRv',         sel:'f-cmt-cpa', lista:()=>cmtsCprv},
+  {id:'cmtsBprv',label:'👤 CMT BPRv',         sel:'f-cmt-btl', lista:()=>cmtsBprv},
+  {id:'cmtsCia', label:'👤 CMT CIA Rv',        sel:'f-cmt-cia-int',lista:()=>cmtsCia},
+];
 
 function waitFirebase(cb){if(window._sigrop)cb(window._sigrop);else setTimeout(()=>waitFirebase(cb),100)}
 
@@ -667,46 +4041,40 @@ waitFirebase(({auth,onAuthStateChanged})=>{
 });
 
 function inicializar(){
-  ouvirColecao('fatos',d=>{fatos=d;renderSelect('f-fato',fatos);renderAdminLista('fatos','lista-fatos-admin');});
-  ouvirColecao('btls', d=>{btls=d; renderSelect('f-btl',btls);  renderAdminLista('btls','lista-btl-admin');});
-  ouvirColecao('cias', d=>{cias=d; renderSelect('f-cia',cias);  renderAdminLista('cias','lista-cia-admin');});
-  ouvirColecao('pels', d=>{pels=d; renderSelect('f-pel',pels);  renderAdminLista('pels','lista-pel-admin');});
+  COLECOES_ADMIN.forEach(c=>ouvirColecao(c.id));
   ouvirOcorrencias();
   document.getElementById('f-data').valueAsDate=new Date();
+  construirAdminSections();
 }
 
-function irPara(tela){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('screen-'+tela).classList.add('active');
-  document.getElementById('tab-'+tela).classList.add('active');
-  if(tela==='nova'&&!editandoId){
-    limparFormulario();
-    document.getElementById('form-titulo').textContent='Nova Ocorrência';
-    document.getElementById('form-subtitulo').textContent='Preencha todos os campos obrigatórios';
-    document.getElementById('btn-salvar').textContent='💾 Salvar Ocorrência';
-  }
-}
-
-function selecionarCategoria(cat,el){
-  categoriaAtual=cat;
-  document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.cat-panel').forEach(p=>p.classList.remove('active'));
-  if(el)el.classList.add('active');
-  document.getElementById('panel-'+cat).classList.add('active');
-}
-
-function ouvirColecao(nome,cb){
+function ouvirColecao(nome){
   waitFirebase(({db,collection,onSnapshot,query,orderBy})=>{
     const q=query(collection(db,nome),orderBy('nome'));
-    onSnapshot(q,snap=>{cb(snap.docs.map(d=>({id:d.id,...d.data()})));});
+    onSnapshot(q,snap=>{
+      const dados=snap.docs.map(d=>(({id:d.id,...d.data()})));
+      if(nome==='fatos')fatos=dados;
+      else if(nome==='rodovias')rodovias=dados;
+      else if(nome==='btls')btls=dados;
+      else if(nome==='cias')cias=dados;
+      else if(nome==='pels')pels=dados;
+      else if(nome==='cmtsCprv')cmtsCprv=dados;
+      else if(nome==='cmtsBprv')cmtsBprv=dados;
+      else if(nome==='cmtsCia')cmtsCia=dados;
+      const col=COLECOES_ADMIN.find(c=>c.id===nome);
+      if(col){
+        renderSelect(col.sel,col.lista());
+        renderAdminLista(nome);
+      }
+    });
   });
 }
 
 function renderSelect(elId,lista){
   const sel=document.getElementById(elId);if(!sel)return;
   const val=sel.value;
-  sel.innerHTML='<option value="">Selecione…</option>';
+  const primeiro=sel.options[0];
+  sel.innerHTML='';
+  sel.appendChild(primeiro);
   lista.filter(i=>i.ativo!==false).forEach(i=>{
     const o=document.createElement('option');
     o.value=i.nome;o.textContent=i.nome;sel.appendChild(o);
@@ -714,29 +4082,43 @@ function renderSelect(elId,lista){
   sel.value=val;
 }
 
-function renderAdminLista(colecao,ulId){
-  const ul=document.getElementById(ulId);if(!ul)return;
-  const map={fatos,btls,cias,pels};
-  const lista=map[colecao]||[];
+function construirAdminSections(){
+  const div=document.getElementById('admin-sections');
+  div.innerHTML='';
+  COLECOES_ADMIN.forEach(c=>{
+    div.innerHTML+=`
+    <div class="admin-section">
+      <h3>${c.label}</h3>
+      <div style="display:flex;gap:8px;margin-bottom:13px">
+        <input type="text" id="inp-${c.id}" placeholder="Novo item…"
+          style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--txt);padding:9px 12px;font-size:13px;outline:none">
+        <button class="btn btn-success btn-sm" onclick="adicionarItem('${c.id}')">+ Adicionar</button>
+      </div>
+      <ul class="list-manage" id="lista-${c.id}"><li style="color:var(--txt3)">Carregando…</li></ul>
+    </div>`;
+  });
+}
+
+function renderAdminLista(colecao){
+  const ul=document.getElementById('lista-'+colecao);if(!ul)return;
+  const col=COLECOES_ADMIN.find(c=>c.id===colecao);
+  const lista=col?col.lista():[];
   ul.innerHTML='';
-  if(!lista.length){ul.innerHTML='<li style="color:var(--txt3)">Nenhum item cadastrado.</li>';return;}
+  if(!lista.length){ul.innerHTML='<li style="color:var(--txt3)">Nenhum item.</li>';return;}
   lista.forEach(f=>{
     const li=document.createElement('li');
     if(f.ativo===false)li.classList.add('inativo');
     li.innerHTML=`<span>${f.nome}</span>
       <div class="actions">
-        <button class="btn btn-ghost" style="padding:4px 10px;font-size:12px"
-          onclick="toggleItem('${colecao}','${f.id}',${f.ativo!==false})">
-          ${f.ativo===false?'Ativar':'Inibir'}</button>
-        <button class="btn btn-danger" style="padding:4px 10px;font-size:12px"
-          onclick="excluirItem('${colecao}','${f.id}')">Excluir</button>
+        <button class="btn btn-ghost btn-sm" onclick="toggleItem('${colecao}','${f.id}',${f.ativo!==false})">${f.ativo===false?'Ativar':'Inibir'}</button>
+        <button class="btn btn-danger btn-sm" onclick="excluirItem('${colecao}','${f.id}')">Excluir</button>
       </div>`;
     ul.appendChild(li);
   });
 }
 
-async function adicionarItem(colecao,inputId,ulId){
-  const inp=document.getElementById(inputId);
+async function adicionarItem(colecao){
+  const inp=document.getElementById('inp-'+colecao);
   const nome=inp.value.trim();if(!nome)return;
   waitFirebase(async({db,collection,addDoc,serverTimestamp})=>{
     await addDoc(collection(db,colecao),{nome,ativo:true,criadoEm:serverTimestamp()});
@@ -747,15 +4129,66 @@ function toggleItem(colecao,id,ativo){
   waitFirebase(({db,doc,updateDoc})=>updateDoc(doc(db,colecao,id),{ativo:!ativo}));
 }
 function excluirItem(colecao,id){
-  if(!confirm('Excluir permanentemente este item?'))return;
+  if(!confirm('Excluir permanentemente?'))return;
   waitFirebase(({db,doc,deleteDoc})=>{deleteDoc(doc(db,colecao,id));toast('Item excluído.','ok');});
 }
 
+// EQUIPES
+function adicionarEquipe(){
+  equipeCount++;
+  const n=equipeCount;
+  const c=document.getElementById('equipes-container');
+  const div=document.createElement('div');
+  div.className='equipe-card';
+  div.id='equipe-'+n;
+  div.innerHTML=`
+    <div class="equipe-header">
+      <span class="equipe-titulo">Equipe ${n}</span>
+      <button type="button" class="btn btn-danger btn-sm" onclick="removerEquipe(${n})">✕ Remover</button>
+    </div>
+    <div class="equipe-grid">
+      <div class="field-group"><label>VTR</label><input type="text" id="eq${n}-vtr" placeholder="Ex: R-03128"></div>
+      <div class="field-group"><label>Encarregado</label><input type="text" id="eq${n}-enc" placeholder="Cb PM Nome"></div>
+      <div class="field-group"><label>Auxiliar 1</label><input type="text" id="eq${n}-aux1" placeholder="Sd PM Nome"></div>
+      <div class="field-group"><label>Auxiliar 2</label><input type="text" id="eq${n}-aux2" placeholder="Sd PM Nome"></div>
+      <div class="field-group"><label>Auxiliar 3</label><input type="text" id="eq${n}-aux3" placeholder="Sd PM Nome"></div>
+      <div class="field-group"><label>Auxiliar 4</label><input type="text" id="eq${n}-aux4" placeholder="Sd PM Nome"></div>
+    </div>`;
+  c.appendChild(div);
+}
+function removerEquipe(n){
+  const el=document.getElementById('equipe-'+n);
+  if(el)el.remove();
+}
+function coletarEquipes(){
+  const equipes=[];
+  document.querySelectorAll('.equipe-card').forEach(card=>{
+    const n=card.id.replace('equipe-','');
+    const vtr=gv('eq'+n+'-vtr'),enc=gv('eq'+n+'-enc');
+    const aux1=gv('eq'+n+'-aux1'),aux2=gv('eq'+n+'-aux2'),aux3=gv('eq'+n+'-aux3'),aux4=gv('eq'+n+'-aux4');
+    equipes.push({vtr,enc,aux1,aux2,aux3,aux4});
+  });
+  return equipes;
+}
+function preencherEquipes(equipes){
+  document.getElementById('equipes-container').innerHTML='';
+  equipeCount=0;
+  if(!equipes||!equipes.length)return;
+  equipes.forEach(eq=>{
+    adicionarEquipe();
+    const n=equipeCount;
+    sv('eq'+n+'-vtr',eq.vtr);sv('eq'+n+'-enc',eq.enc);
+    sv('eq'+n+'-aux1',eq.aux1);sv('eq'+n+'-aux2',eq.aux2);
+    sv('eq'+n+'-aux3',eq.aux3);sv('eq'+n+'-aux4',eq.aux4);
+  });
+}
+
+// OCORRÊNCIAS
 function ouvirOcorrencias(){
   waitFirebase(({db,collection,onSnapshot,query,orderBy})=>{
     const q=query(collection(db,'ocorrencias'),orderBy('criadoEm','desc'));
     onSnapshot(q,snap=>{
-      ocorrencias=snap.docs.map(d=>({id:d.id,...d.data()}));
+      ocorrencias=snap.docs.map(d=>(({id:d.id,...d.data()})));
       renderTabela(ocorrencias);atualizarStats();
     });
   });
@@ -770,18 +4203,18 @@ function atualizarStats(){
 
 function renderTabela(lista){
   const tbody=document.getElementById('tabela-ocorrencias');
-  if(!lista.length){tbody.innerHTML=`<tr><td colspan="7"><div class="empty"><div class="icon">📄</div><p>Nenhuma ocorrência encontrada.</p></div></td></tr>`;return;}
+  if(!lista.length){tbody.innerHTML=`<tr><td colspan="6"><div class="empty"><div class="icon">📄</div><p>Nenhuma ocorrência.</p></div></td></tr>`;return;}
+  const rod=(o)=>o.rodovia?(o.rodovia+(o.km?' KM '+o.km:'')):o.municipio||'—';
   tbody.innerHTML=lista.map(o=>`
     <tr>
-      <td style="font-family:var(--font-mono);white-space:nowrap">${fmtData(o.data)}</td>
+      <td style="font-family:'Courier New',monospace;white-space:nowrap">${fmtData(o.data)}</td>
       <td>${o.fato||'—'}</td><td>${o.municipio||'—'}</td>
-      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${o.endereco||''}">${o.endereco||'—'}</td>
-      <td>${o.efetivo||'—'}</td>
+      <td style="white-space:nowrap">${rod(o)}</td>
       <td><span class="badge badge-${slugStatus(o.status)}">${o.status||'—'}</span></td>
-      <td><div style="display:flex;gap:6px">
-        <button class="btn btn-ghost" style="padding:4px 10px;font-size:12px" onclick="verOcorrencia('${o.id}')">👁 Ver</button>
-        <button class="btn btn-ghost" style="padding:4px 10px;font-size:12px" onclick="editarOcorrencia('${o.id}')">✏️</button>
-        <button class="btn btn-ghost" style="padding:4px 10px;font-size:12px" onclick="exportarPDF('${o.id}')">📄</button>
+      <td><div style="display:flex;gap:5px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="verOcorrencia('${o.id}')">👁</button>
+        <button class="btn btn-ghost btn-sm" onclick="editarOcorrencia('${o.id}')">✏️</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportarPDF('${o.id}')">📄</button>
       </div></td>
     </tr>`).join('');
 }
@@ -790,9 +4223,30 @@ function filtrarOcorrencias(){
   const busca=document.getElementById('filtro-busca').value.toLowerCase();
   const status=document.getElementById('filtro-status').value;
   renderTabela(ocorrencias.filter(o=>{
-    const txt=[o.fato,o.municipio,o.endereco,o.historico].join(' ').toLowerCase();
+    const txt=[o.fato,o.municipio,o.rodovia,o.historico].join(' ').toLowerCase();
     return(!busca||txt.includes(busca))&&(!status||o.status===status);
   }));
+}
+
+function irPara(tela){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('screen-'+tela).classList.add('active');
+  document.getElementById('tab-'+tela).classList.add('active');
+  if(tela==='nova'&&!editandoId){
+    limparFormulario();
+    document.getElementById('form-titulo').textContent='Nova Ocorrência';
+    document.getElementById('form-subtitulo').textContent='Preencha os campos obrigatórios';
+    document.getElementById('btn-salvar').innerHTML='💾 Salvar Ocorrência';
+  }
+}
+
+function selecionarCategoria(cat,el){
+  categoriaAtual=cat;
+  document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.cat-panel').forEach(p=>p.classList.remove('active'));
+  if(el)el.classList.add('active');
+  document.getElementById('panel-'+cat).classList.add('active');
 }
 
 async function salvarOcorrencia(e){
@@ -810,57 +4264,65 @@ async function salvarOcorrencia(e){
         toast('Ocorrência registrada.','ok');
       }
       editandoId=null;irPara('listagem');
-    }catch(err){toast('Erro ao salvar: '+err.message,'err');}
+    }catch(err){toast('Erro: '+err.message,'err');}
     finally{btn.disabled=false;btn.innerHTML='💾 Salvar Ocorrência';}
   });
 }
 
 function coletarDados(){
   return{
-    fato:v('f-fato'),ambiente:v('f-ambiente'),data:v('f-data'),
-    tempoResposta:v('f-tempo-resposta'),efetivo:v('f-efetivo'),
-    endereco:v('f-endereco'),municipio:v('f-municipio'),socorro:v('f-socorro'),
-    btl:v('f-btl'),cia:v('f-cia'),pel:v('f-pel'),
-    horario:document.getElementById('f-horario').value,
-    unidadesPol:v('f-unidades-pol'),vtr:v('f-vtr'),dp:v('f-dp'),
+    fato:gv('f-fato'),ambiente:gv('f-ambiente'),data:gv('f-data'),
+    tempoResposta:gv('f-tempo-resposta'),efetivo:gv('f-efetivo'),
+    rodovia:gv('f-rodovia'),km:gv('f-km'),metros:gv('f-metros'),pista:gv('f-pista'),
+    municipio:gv('f-municipio'),socorro:gv('f-socorro'),
+    btl:gv('f-btl'),cia:gv('f-cia'),pel:gv('f-pel'),
+    horario:gv('f-horario'),dp:gv('f-dp'),
+    equipes:coletarEquipes(),
     categoria:categoriaAtual,
-    tVitimasQtd:v('f-t-vitimas-qtd'),tVeiculosQtd:v('f-t-veiculos-qtd'),
-    tVia:v('f-t-via'),tObito:v('f-t-obito'),tTipoSinistro:v('f-t-tipo-sinistro'),
-    cVitimasQtd:v('f-c-vitimas-qtd'),cVeiculosQtd:v('f-c-veiculos-qtd'),
-    cApreendidos:v('f-c-apreendidos'),cSubtraidos:v('f-c-subtraidos'),
-    cPressos:v('f-c-presos'),cArmas:v('f-c-armas'),
-    mManifestantes:v('f-m-manifestantes'),mVeiculosQtd:v('f-m-veiculos-qtd'),
-    mMotivo:v('f-m-motivo'),mResponsavel:v('f-m-responsavel'),mInterdicao:v('f-m-interdicao'),
-    iMotivo:v('f-i-motivo'),iKm:v('f-i-km'),
-    cmtCpa:v('f-cmt-cpa'),cmtBtl:v('f-cmt-btl'),cmtCiaInt:v('f-cmt-cia-int'),
-    registro:v('f-registro'),historico:v('f-historico'),
-    autoridadesLocal:v('f-autoridades-local'),autoridadesCient:v('f-autoridades-cient'),
-    status:v('f-status'),
+    tFatais:gv('f-t-fatais'),tGraves:gv('f-t-graves'),tLeves:gv('f-t-leves'),tIlesos:gv('f-t-ilesos'),
+    tAP:gv('f-t-ap'),tMoto:gv('f-t-moto'),tCA:gv('f-t-ca'),tOA:gv('f-t-oa'),tOutrosVeic:gv('f-t-outros-veic'),
+    tPistaCond:gv('f-t-pista-cond'),tTempo:gv('f-t-tempo'),tPavimento:gv('f-t-pavimento'),
+    tTipoSinistro:gv('f-t-tipo-sinistro'),tObito:gv('f-t-obito'),
+    cFatais:gv('f-c-fatais'),cGraves:gv('f-c-graves'),cLeves:gv('f-c-leves'),cIlesos:gv('f-c-ilesos'),
+    cAP:gv('f-c-ap'),cMoto:gv('f-c-moto'),cCA:gv('f-c-ca'),cOA:gv('f-c-oa'),cOutrosVeic:gv('f-c-outros-veic'),
+    cApreendidos:gv('f-c-apreendidos'),cSubtraidos:gv('f-c-subtraidos'),cPressos:gv('f-c-presos'),cArmas:gv('f-c-armas'),
+    mAP:gv('f-m-ap'),mMoto:gv('f-m-moto'),mCA:gv('f-m-ca'),mOA:gv('f-m-oa'),mOutrosVeic:gv('f-m-outros-veic'),
+    mManifestantes:gv('f-m-manifestantes'),mMotivo:gv('f-m-motivo'),mResponsavel:gv('f-m-responsavel'),mInterdicao:gv('f-m-interdicao'),
+    iMotivo:gv('f-i-motivo'),iKm:gv('f-i-km'),
+    cmtCpa:gv('f-cmt-cpa'),cmtBtl:gv('f-cmt-btl'),cmtCiaInt:gv('f-cmt-cia-int'),
+    ppri:gv('f-ppri'),token:gv('f-token'),bopc:gv('f-bopc'),
+    historico:gv('f-historico'),
+    autoridadesLocal:gv('f-autoridades-local'),autoridadesCient:gv('f-autoridades-cient'),
+    status:gv('f-status'),
   };
 }
 
 function preencherFormulario(o){
   sv('f-fato',o.fato);sv('f-ambiente',o.ambiente);sv('f-data',o.data);
   sv('f-tempo-resposta',o.tempoResposta);sv('f-efetivo',o.efetivo);
-  sv('f-endereco',o.endereco);sv('f-municipio',o.municipio);sv('f-socorro',o.socorro);
+  sv('f-rodovia',o.rodovia);sv('f-km',o.km);sv('f-metros',o.metros);sv('f-pista',o.pista);
+  sv('f-municipio',o.municipio);sv('f-socorro',o.socorro);
   sv('f-btl',o.btl);sv('f-cia',o.cia);sv('f-pel',o.pel);
-  document.getElementById('f-horario').value=o.horario||'';
-  sv('f-unidades-pol',o.unidadesPol);sv('f-vtr',o.vtr);sv('f-dp',o.dp);
+  sv('f-horario',o.horario);sv('f-dp',o.dp);
+  preencherEquipes(o.equipes||[]);
   const cat=o.categoria||'transito';categoriaAtual=cat;
   const cats=['transito','criminal','manifestacao','interdicao'];
   document.querySelectorAll('.cat-tab').forEach((t,i)=>t.classList.toggle('active',cats[i]===cat));
   document.querySelectorAll('.cat-panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('panel-'+cat).classList.add('active');
-  sv('f-t-vitimas-qtd',o.tVitimasQtd);sv('f-t-veiculos-qtd',o.tVeiculosQtd);
-  sv('f-t-via',o.tVia);sv('f-t-obito',o.tObito);sv('f-t-tipo-sinistro',o.tTipoSinistro);
-  sv('f-c-vitimas-qtd',o.cVitimasQtd);sv('f-c-veiculos-qtd',o.cVeiculosQtd);
-  sv('f-c-apreendidos',o.cApreendidos);sv('f-c-subtraidos',o.cSubtraidos);
-  sv('f-c-presos',o.cPressos);sv('f-c-armas',o.cArmas);
-  sv('f-m-manifestantes',o.mManifestantes);sv('f-m-veiculos-qtd',o.mVeiculosQtd);
-  sv('f-m-motivo',o.mMotivo);sv('f-m-responsavel',o.mResponsavel);sv('f-m-interdicao',o.mInterdicao);
+  sv('f-t-fatais',o.tFatais);sv('f-t-graves',o.tGraves);sv('f-t-leves',o.tLeves);sv('f-t-ilesos',o.tIlesos);
+  sv('f-t-ap',o.tAP);sv('f-t-moto',o.tMoto);sv('f-t-ca',o.tCA);sv('f-t-oa',o.tOA);sv('f-t-outros-veic',o.tOutrosVeic);
+  sv('f-t-pista-cond',o.tPistaCond);sv('f-t-tempo',o.tTempo);sv('f-t-pavimento',o.tPavimento);
+  sv('f-t-tipo-sinistro',o.tTipoSinistro);sv('f-t-obito',o.tObito);
+  sv('f-c-fatais',o.cFatais);sv('f-c-graves',o.cGraves);sv('f-c-leves',o.cLeves);sv('f-c-ilesos',o.cIlesos);
+  sv('f-c-ap',o.cAP);sv('f-c-moto',o.cMoto);sv('f-c-ca',o.cCA);sv('f-c-oa',o.cOA);sv('f-c-outros-veic',o.cOutrosVeic);
+  sv('f-c-apreendidos',o.cApreendidos);sv('f-c-subtraidos',o.cSubtraidos);sv('f-c-presos',o.cPressos);sv('f-c-armas',o.cArmas);
+  sv('f-m-ap',o.mAP);sv('f-m-moto',o.mMoto);sv('f-m-ca',o.mCA);sv('f-m-oa',o.mOA);sv('f-m-outros-veic',o.mOutrosVeic);
+  sv('f-m-manifestantes',o.mManifestantes);sv('f-m-motivo',o.mMotivo);sv('f-m-responsavel',o.mResponsavel);sv('f-m-interdicao',o.mInterdicao);
   sv('f-i-motivo',o.iMotivo);sv('f-i-km',o.iKm);
   sv('f-cmt-cpa',o.cmtCpa);sv('f-cmt-btl',o.cmtBtl);sv('f-cmt-cia-int',o.cmtCiaInt);
-  sv('f-registro',o.registro);sv('f-historico',o.historico);
+  sv('f-ppri',o.ppri);sv('f-token',o.token);sv('f-bopc',o.bopc);
+  sv('f-historico',o.historico);
   sv('f-autoridades-local',o.autoridadesLocal);sv('f-autoridades-cient',o.autoridadesCient);
   sv('f-status',o.status);
 }
@@ -868,7 +4330,8 @@ function preencherFormulario(o){
 function limparFormulario(){
   document.getElementById('form-ocorrencia').reset();
   document.getElementById('f-data').valueAsDate=new Date();
-  editandoId=null;
+  document.getElementById('equipes-container').innerHTML='';
+  equipeCount=0;editandoId=null;
   selecionarCategoria('transito',document.querySelector('.cat-tab'));
 }
 
@@ -876,8 +4339,8 @@ function editarOcorrencia(id){
   const o=ocorrencias.find(x=>x.id===id);if(!o)return;
   editandoId=id;preencherFormulario(o);
   document.getElementById('form-titulo').textContent='Editar Ocorrência';
-  document.getElementById('form-subtitulo').textContent='Modifique os campos necessários e salve';
-  document.getElementById('btn-salvar').textContent='💾 Atualizar Ocorrência';
+  document.getElementById('form-subtitulo').textContent='Modifique os campos e salve';
+  document.getElementById('btn-salvar').innerHTML='💾 Atualizar Ocorrência';
   irPara('nova');
 }
 
@@ -887,7 +4350,7 @@ function verOcorrencia(id){
   document.getElementById('modal-body').innerHTML=`<div class="report-view">${gerarTextoRelatorio(o)}</div>`;
   document.getElementById('modal-actions').innerHTML=`
     <button class="btn btn-ghost" onclick="fecharModal()">Fechar</button>
-    <button class="btn btn-warn" onclick="exportarPDF('${id}')">📄 Exportar PDF</button>
+    <button class="btn btn-warn" onclick="exportarPDF('${id}')">📄 PDF</button>
     <button class="btn btn-primary" onclick="fecharModal();editarOcorrencia('${id}')">✏️ Editar</button>`;
   document.getElementById('modal-backdrop').classList.add('open');
 }
@@ -901,80 +4364,96 @@ function exportarPDF(id){
   pdf.setFontSize(10);pdf.setFont('helvetica','bold');
   pdf.text('SIGROP — RELATÓRIO DE OCORRÊNCIA POLICIAL',105,y,{align:'center'});y+=7;
   pdf.setFontSize(8);pdf.setFont('helvetica','normal');pdf.setTextColor(100);
-  pdf.text('Sistema de Gestão de Relatórios de Ocorrências Policiais',105,y,{align:'center'});
+  pdf.text('Sistema de Gestão de Relatórios de Ocorrências Policiais — 3º BPRv',105,y,{align:'center'});
   pdf.setTextColor(0);y+=8;pdf.line(marg,y,210-marg,y);y+=6;
   const catLabel={transito:'Sinistro de Trânsito',criminal:'Criminal',manifestacao:'Manifestação',interdicao:'Interdição de Rodovia'};
-  const camposGerais=[
+  const rows=[
     ['Natureza do Fato',o.fato],['Ambiente',o.ambiente],['Data',fmtData(o.data)],
     ['Tempo de Resposta',o.tempoResposta],['Efetivo Empenhado',o.efetivo],
-    ['Endereço',o.endereco],['Município',o.municipio],['Locais de Socorro',o.socorro],
-    ['Btl',o.btl],['Cia',o.cia],['Pel',o.pel],['Horário de Serviço',o.horario],
-    ['Unidades de Serviço que Atenderam',o.unidadesPol],['Vtr',o.vtr],['DP',o.dp],
+    ['Rodovia',o.rodovia],['KM',o.km],['Metros',o.metros],['Pista',o.pista],
+    ['Município',o.municipio],['Locais de Socorro',o.socorro],
+    ['Btl',o.btl],['Cia',o.cia],['Pel',o.pel],
+    ['Horário de Serviço',o.horario],['DP',o.dp],
     ['Categoria',catLabel[o.categoria||'transito']],
   ];
-  const camposCat={
-    transito:[['Qtd. Vítimas',o.tVitimasQtd],['Qtd. Veículos',o.tVeiculosQtd],
-      ['Via/Condições',o.tVia],['Vítimas em Óbito',o.tObito],['Tipo de Sinistro',o.tTipoSinistro]],
-    criminal:[['Qtd. Vítimas',o.cVitimasQtd],['Qtd. Veículos',o.cVeiculosQtd],
-      ['Mat./Obj./Subst. Apreendidos',o.cApreendidos],['Mat./Obj./Subst. Subtraídos',o.cSubtraidos],
-      ['Qtd. Pessoas Presas',o.cPressos],['Armas/Munição Apreendidas',o.cArmas]],
-    manifestacao:[['Qtd. Manifestantes',o.mManifestantes],['Qtd. Veículos',o.mVeiculosQtd],
-      ['Motivo da Manifestação',o.mMotivo],['Responsável',o.mResponsavel],['Rodovia Interditada',o.mInterdicao]],
-    interdicao:[['Motivo da Interdição',o.iMotivo],['Km de Congestionamento',o.iKm]],
-  };
-  const campos=[...camposGerais,...(camposCat[o.categoria||'transito']||[]),
-    ['CMT CPA/CPI-CBM/CBI',o.cmtCpa],['CMT BTL/INTERINO-GB',o.cmtBtl],
-    ['CMT CIA/INTERINO',o.cmtCiaInt],['Registro',o.registro],
+  if((o.categoria||'transito')==='transito')rows.push(
+    ['Vítimas Fatais',o.tFatais],['Vítimas Graves',o.tGraves],['Vítimas Leves',o.tLeves],['Ilesos',o.tIlesos],
+    ['AP',o.tAP],['Moto',o.tMoto],['CA',o.tCA],['OA',o.tOA],['Outros Veículos',o.tOutrosVeic],
+    ['Pista',o.tPistaCond],['Tempo',o.tTempo],['Pavimento',o.tPavimento],
+    ['Tipo de Sinistro',o.tTipoSinistro],['Vítimas em Óbito',o.tObito]);
+  else if(o.categoria==='criminal')rows.push(
+    ['Vítimas Fatais',o.cFatais],['Vítimas Graves',o.cGraves],['Vítimas Leves',o.cLeves],['Ilesos',o.cIlesos],
+    ['AP',o.cAP],['Moto',o.cMoto],['CA',o.cCA],['OA',o.cOA],['Outros Veículos',o.cOutrosVeic],
+    ['Apreendidos',o.cApreendidos],['Subtraídos',o.cSubtraidos],['Pessoas Presas',o.cPressos],['Armas/Munição',o.cArmas]);
+  else if(o.categoria==='manifestacao')rows.push(
+    ['AP',o.mAP],['Moto',o.mMoto],['CA',o.mCA],['OA',o.mOA],['Outros Veículos',o.mOutrosVeic],
+    ['Manifestantes',o.mManifestantes],['Motivo',o.mMotivo],['Responsável',o.mResponsavel],['Rodovia Interditada',o.mInterdicao]);
+  else if(o.categoria==='interdicao')rows.push(
+    ['Motivo da Interdição',o.iMotivo],['Km de Congestionamento',o.iKm]);
+  rows.push(
+    ['CMT CPRv',o.cmtCpa],['CMT BPRv',o.cmtBtl],['CMT CIA Rv',o.cmtCiaInt],
+    ['PPRI',o.ppri],['Token',o.token],['BO/PC',o.bopc],
     ['Autoridades no Local',o.autoridadesLocal],['Autoridades Cientificadas',o.autoridadesCient],
-    ['Status',o.status]];
+    ['Status',o.status]);
   pdf.setFontSize(9);
-  campos.forEach(([label,val])=>{
-    if(!val)return;
+  rows.forEach(([label,val])=>{
+    if(!val||val==='0')return;
     pdf.setFont('helvetica','bold');pdf.text(label+':',marg,y);
     pdf.setFont('helvetica','normal');
-    const linhas=pdf.splitTextToSize(val,larg-54);
+    const linhas=pdf.splitTextToSize(String(val),larg-54);
     pdf.text(linhas,marg+56,y);
     y+=linhas.length*5+2;
     if(y>270){pdf.addPage();y=20;}
   });
+  if(o.equipes&&o.equipes.length){
+    y+=2;pdf.line(marg,y,210-marg,y);y+=6;
+    pdf.setFont('helvetica','bold');pdf.text('Equipes:',marg,y);y+=6;
+    pdf.setFont('helvetica','normal');
+    o.equipes.forEach((eq,i)=>{
+      const txt=`Equipe ${i+1}: VTR ${eq.vtr||'—'} | Enc: ${eq.enc||'—'} | Aux1: ${eq.aux1||'—'} | Aux2: ${eq.aux2||'—'} | Aux3: ${eq.aux3||'—'} | Aux4: ${eq.aux4||'—'}`;
+      const linhas=pdf.splitTextToSize(txt,larg);
+      pdf.text(linhas,marg,y);y+=linhas.length*5+2;
+      if(y>270){pdf.addPage();y=20;}
+    });
+  }
   if(o.historico){
     y+=2;pdf.line(marg,y,210-marg,y);y+=6;
     pdf.setFont('helvetica','bold');pdf.text('Histórico:',marg,y);y+=6;
     pdf.setFont('helvetica','normal');
-    pdf.splitTextToSize(o.historico,larg).forEach(l=>{
-      pdf.text(l,marg,y);y+=5;if(y>270){pdf.addPage();y=20;}
-    });
+    pdf.splitTextToSize(o.historico,larg).forEach(l=>{pdf.text(l,marg,y);y+=5;if(y>270){pdf.addPage();y=20;}});
   }
   y+=6;pdf.line(marg,y,210-marg,y);y+=5;
   pdf.setFontSize(7);pdf.setTextColor(120);
-  pdf.text(`Gerado em ${new Date().toLocaleString('pt-BR')} por ${usuarioAtual?.email||'—'} — SIGROP v1.1`,105,y,{align:'center'});
-  pdf.save(`SIGROP_${(o.fato||'ocorrencia').replace(/\s+/g,'_')}_${o.data||'sem-data'}.pdf`);
+  pdf.text(`Gerado em ${new Date().toLocaleString('pt-BR')} por ${usuarioAtual?.email||'—'} — SIGROP v1.2`,105,y,{align:'center'});
+  pdf.save(`SIGROP_${(o.fato||'oc').replace(/\s+/g,'_')}_${o.data||'sd'}.pdf`);
   toast('PDF exportado.','ok');
 }
 
 function gerarTextoRelatorio(o){
-  const l=(label,val)=>val?`<strong>${label}:</strong> ${val}\n`:'';
-  const catLabel={transito:'🚗 Sinistro de Trânsito',criminal:'⚖️ Criminal',manifestacao:'📢 Manifestação',interdicao:'🚧 Interdição de Rodovia'};
-  let linhas=[
+  const l=(label,val)=>(val&&val!=='0')?`<strong>${label}:</strong> ${val}\n`:'';
+  const catLabel={transito:'🚗 Sinistro de Trânsito',criminal:'⚖️ Criminal',manifestacao:'📢 Manifestação',interdicao:'🚧 Interdição'};
+  let txt=[
     l('Natureza do Fato',o.fato),l('Ambiente',o.ambiente),l('Data',fmtData(o.data)),
     l('Tempo de Resposta',o.tempoResposta),l('Efetivo Empenhado',o.efetivo),
-    l('Endereço',o.endereco),l('Município',o.municipio),l('Locais de Socorro',o.socorro),
-    l('Btl',o.btl),l('Cia',o.cia),l('Pel',o.pel),l('Horário de Serviço',o.horario),
-    l('Unidades de Serviço que Atenderam',o.unidadesPol),l('Vtr',o.vtr),l('DP',o.dp),'\n',
+    l('Rodovia',o.rodovia),l('KM',o.km),l('Metros',o.metros),l('Pista',o.pista),
+    l('Município',o.municipio),l('Locais de Socorro',o.socorro),
+    l('Btl',o.btl),l('Cia',o.cia),l('Pel',o.pel),l('Horário',o.horario),l('DP',o.dp),'\n',
     `<strong>— ${catLabel[o.categoria||'transito']} —</strong>\n`,
-  ];
+  ].join('');
   const cat=o.categoria||'transito';
-  if(cat==='transito')linhas.push(l('Qtd. Vítimas',o.tVitimasQtd),l('Qtd. Veículos',o.tVeiculosQtd),l('Via/Condições',o.tVia),l('Vítimas em Óbito',o.tObito),l('Tipo de Sinistro',o.tTipoSinistro));
-  if(cat==='criminal')linhas.push(l('Qtd. Vítimas',o.cVitimasQtd),l('Qtd. Veículos',o.cVeiculosQtd),l('Apreendidos',o.cApreendidos),l('Subtraídos',o.cSubtraidos),l('Pessoas Presas',o.cPressos),l('Armas/Munição',o.cArmas));
-  if(cat==='manifestacao')linhas.push(l('Manifestantes',o.mManifestantes),l('Qtd. Veículos',o.mVeiculosQtd),l('Motivo',o.mMotivo),l('Responsável',o.mResponsavel),l('Rodovia Interditada',o.mInterdicao));
-  if(cat==='interdicao')linhas.push(l('Motivo da Interdição',o.iMotivo),l('Km de Congestionamento',o.iKm));
-  linhas.push('\n',l('CMT CPA/CPI',o.cmtCpa),l('CMT BTL/INTERINO',o.cmtBtl),l('CMT CIA/INTERINO',o.cmtCiaInt),
-    l('Registro',o.registro),'\n',l('Histórico',o.historico),'\n',
-    l('Autoridades no Local',o.autoridadesLocal),l('Autoridades Cientificadas',o.autoridadesCient),l('Status',o.status));
-  return linhas.join('');
+  if(cat==='transito')txt+=[l('Vítimas Fatais',o.tFatais),l('Vítimas Graves',o.tGraves),l('Vítimas Leves',o.tLeves),l('Ilesos',o.tIlesos),l('AP',o.tAP),l('Moto',o.tMoto),l('CA',o.tCA),l('OA',o.tOA),l('Outros Veíc.',o.tOutrosVeic),l('Pista',o.tPistaCond),l('Tempo',o.tTempo),l('Pavimento',o.tPavimento),l('Tipo de Sinistro',o.tTipoSinistro),l('Vítimas em Óbito',o.tObito)].join('');
+  if(cat==='criminal')txt+=[l('Vítimas Fatais',o.cFatais),l('Vítimas Graves',o.cGraves),l('Vítimas Leves',o.cLeves),l('Ilesos',o.cIlesos),l('AP',o.cAP),l('Moto',o.cMoto),l('CA',o.cCA),l('OA',o.cOA),l('Outros Veíc.',o.cOutrosVeic),l('Apreendidos',o.cApreendidos),l('Subtraídos',o.cSubtraidos),l('Pessoas Presas',o.cPressos),l('Armas/Munição',o.cArmas)].join('');
+  if(cat==='manifestacao')txt+=[l('AP',o.mAP),l('Moto',o.mMoto),l('CA',o.mCA),l('OA',o.mOA),l('Outros Veíc.',o.mOutrosVeic),l('Manifestantes',o.mManifestantes),l('Motivo',o.mMotivo),l('Responsável',o.mResponsavel),l('Rodovia Interditada',o.mInterdicao)].join('');
+  if(cat==='interdicao')txt+=[l('Motivo',o.iMotivo),l('Km Congestionamento',o.iKm)].join('');
+  if(o.equipes&&o.equipes.length){
+    txt+='\n<strong>— Equipes —</strong>\n';
+    o.equipes.forEach((eq,i)=>{txt+=`Equipe ${i+1}: VTR ${eq.vtr||'—'} | Enc: ${eq.enc||'—'} | Aux1: ${eq.aux1||'—'} | Aux2: ${eq.aux2||'—'} | Aux3: ${eq.aux3||'—'} | Aux4: ${eq.aux4||'—'}\n`;});
+  }
+  txt+='\n'+[l('CMT CPRv',o.cmtCpa),l('CMT BPRv',o.cmtBtl),l('CMT CIA Rv',o.cmtCiaInt),l('PPRI',o.ppri),l('Token',o.token),l('BO/PC',o.bopc),'\n',l('Histórico',o.historico),'\n',l('Autoridades no Local',o.autoridadesLocal),l('Autoridades Cientificadas',o.autoridadesCient),l('Status',o.status)].join('');
+  return txt;
 }
 
-const v=id=>document.getElementById(id)?.value||'';
+const gv=id=>document.getElementById(id)?.value||'';
 const sv=(id,val)=>{const el=document.getElementById(id);if(el)el.value=val||'';};
 function fmtData(d){if(!d)return'—';const[a,m,dd]=d.split('-');return`${dd}/${m}/${a}`;}
 function slugStatus(s){if(!s)return'em-andamento';return s.toLowerCase().replace(/\s+/g,'-').normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
