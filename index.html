@@ -149,9 +149,45 @@
   .spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent2);border-radius:50%;animation:spin .6s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
 
-  @media(max-width:600px){
-    .main-content{padding:16px} .topbar{padding:0 16px}
+  @media(max-width:768px){
+    .login-card{padding:32px 20px;margin:16px}
+    .topbar{padding:0 12px;height:52px}
+    .topbar-brand{font-size:13px;letter-spacing:2px}
+    .topbar-unit{max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px}
+    .nav-tabs{padding:0 8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+    .nav-tabs::-webkit-scrollbar{display:none}
+    .nav-tab{padding:10px 12px;font-size:12px;white-space:nowrap;flex-shrink:0}
+    .main-content{padding:12px}
     .page-header{flex-direction:column;align-items:flex-start;gap:10px}
+    .page-header>.btn{width:100%;justify-content:center}
+    .stats-row{grid-template-columns:repeat(3,1fr);gap:8px}
+    .stat-card{padding:10px 12px}
+    .stat-card .val{font-size:20px}
+    .stat-card .lbl{font-size:10px}
+    .filter-bar{flex-direction:column}
+    .filter-bar input,.filter-bar select{width:100%;min-width:unset}
+    .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    table{min-width:580px}
+    th,td{padding:8px 10px;font-size:12px}
+    .form-card{padding:16px 14px}
+    .form-grid{grid-template-columns:1fr !important}
+    .form-grid .full{grid-column:1 !important}
+    .cat-tabs{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;scrollbar-width:none;gap:4px}
+    .cat-tabs::-webkit-scrollbar{display:none}
+    .cat-tab{white-space:nowrap;flex-shrink:0;padding:8px 10px;font-size:11px}
+    .admin-section{padding:14px}
+    .list-manage li{flex-direction:column;align-items:flex-start;gap:8px}
+    .list-manage li .actions{width:100%;justify-content:flex-end}
+    .modal{padding:16px;margin:8px;max-height:96vh}
+    #modal-actions{flex-direction:column;gap:8px}
+    #modal-actions .btn{width:100%;justify-content:center}
+    #toast{left:12px;right:12px;bottom:12px}
+    .btn{min-height:44px}
+    td .btn,.list-manage .btn{min-height:36px;padding:6px 10px;font-size:11px}
+  }
+  @media(max-width:400px){
+    .stats-row{grid-template-columns:1fr 1fr}
+    .topbar-brand{font-size:11px;letter-spacing:1px}
   }
 </style>
 </head>
