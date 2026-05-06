@@ -173,6 +173,12 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3)}
     grid-template-columns:1fr !important;
   }
 }
+
+@media(max-width:600px){
+  div[style*="grid-template-columns:1fr 2fr"]{
+    grid-template-columns:1fr !important;
+  }
+}
 </style>
 </head>
 <body>
@@ -3436,16 +3442,19 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3)}
 
           <!-- MANIFESTAÇÃO --><!-- MANIFESTAÇÃO -->
           <div class="cat-panel" id="panel-manifestacao">
-            <div class="form-grid">
-              
+            <div style="display:grid;grid-template-columns:1fr 2fr;gap:11px;margin-bottom:11px">
               <div class="field-group"><label>Qtd. Manifestantes</label><input type="text" id="f-m-manifestantes" placeholder="Ex: Aprox. 200"></div>
-              <div class="field-group full"><label>Motivo da Manifestação</label><input type="text" id="f-m-motivo" placeholder="Ex: Greve, Protesto"></div>
-              <div class="field-group"><label>Responsável pela Manifestação</label><input type="text" id="f-m-responsavel" placeholder="Ex: A qualificar"></div>
+              <div class="field-group"><label>Responsável pela Manifestação</label><input type="text" id="f-m-responsavel" placeholder="Ex: A qualificar — Nome, cargo, organização…"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr;gap:11px;margin-bottom:11px">
+              <div class="field-group"><label>Motivo da Manifestação</label><input type="text" id="f-m-motivo" placeholder="Ex: Greve, Protesto"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr;gap:11px">
               <div class="field-group"><label>Rodovia Interditada</label><select id="f-m-interdicao"><option value="">Selecione…</option><option>Sim — Total</option><option>Sim — Parcial</option><option>Não</option></select></div>
             </div>
           </div>
 
-          <!-- INTERDIÇÃO -->
+          <!-- INTERDIÇÃO --><!-- INTERDIÇÃO -->
           <div class="cat-panel" id="panel-interdicao">
             <div class="form-grid">
               <div class="field-group full"><label>Motivo da Interdição</label><input type="text" id="f-i-motivo" placeholder="Ex: Descrever o motivo"></div>
