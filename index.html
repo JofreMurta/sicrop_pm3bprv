@@ -24,8 +24,12 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 
-/* ── CONTROLE DE TELAS ─────────────────────────────────── */
-#screen-listagem,#screen-nova,#screen-admin{display:none}
+
+/* Telas ocultas por padrão — abordagem robusta */
+#screen-listagem { display: none; }
+#screen-nova { display: none; }
+#screen-admin { display: none; }
+
 
 :root{--bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--border:#30363d;--accent:#1f6feb;--accent2:#388bfd;--danger:#da3633;--success:#238636;--warn:#d29922;--txt:#e6edf3;--txt2:#8b949e;--txt3:#6e7681;--radius:8px}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -261,6 +265,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3)}
   <div class="main-content">
 
     <!-- LISTAGEM -->
+    <div class="main-content">
     <div id="screen-listagem">
       <div class="page-header">
         <div><div class="page-title">Ocorrências Registradas</div><div class="page-subtitle">Atualização em tempo real</div></div>
@@ -286,6 +291,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3)}
     </div>
 
     <!-- NOVA OCORRÊNCIA -->
+
     <div id="screen-nova">
       <div class="page-header">
         <div><div class="page-title" id="form-titulo">Nova Ocorrência</div><div class="page-subtitle" id="form-subtitulo">Preencha os campos obrigatórios</div></div>
@@ -3663,6 +3669,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3)}
     </div>
 
     <!-- ADMIN -->
+
     <div id="screen-admin">
       <div class="page-header"><div><div class="page-title">Administração</div><div class="page-subtitle">Gestão de listas</div></div></div>
       <div id="admin-sections"></div>
@@ -3674,6 +3681,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3)}
 
   </div>
 </div>
+  </div>
 
 <div class="modal-backdrop" id="modal-backdrop">
   <div class="modal">
@@ -3727,8 +3735,15 @@ waitFirebase(({auth,onAuthStateChanged})=>{
       usuarioAtual=user;isAdmin=ADMINS.includes(user.email);
       document.getElementById('user-unit').textContent=user.email;
       document.getElementById('screen-login').style.display='none';
-      document.getElementById('screen-app').style.display='block';
       if(isAdmin)document.getElementById('tab-admin').style.display='flex';
+      // Mostrar tela correta ANTES de exibir o app
+      var telas=['listagem','nova','admin'];
+      for(var i=0;i<telas.length;i++){
+        var el=document.getElementById('screen-'+telas[i]);
+        if(el) el.style.display='none';
+      }
+      document.getElementById('screen-listagem').style.display='block';
+      document.getElementById('screen-app').style.display='block';
       inicializar();
     }else{
       usuarioAtual=null;
