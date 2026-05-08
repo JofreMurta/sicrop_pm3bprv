@@ -3735,6 +3735,8 @@ waitFirebase(({auth,onAuthStateChanged})=>{
 });
 
 function inicializar(){
+  // Garantir estado inicial correto das telas
+  irPara('listagem');
   COLECOES_ADMIN.forEach(c=>ouvirColecao(c.id));
   ouvirOcorrencias();
   document.getElementById('f-data').valueAsDate=new Date();
