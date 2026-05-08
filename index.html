@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SIGROP v1.2 — 20260508102533</title>
+<title>SIGROP v1.3</title>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -23,19 +23,17 @@
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-
+/* Controle de páginas — DEFINITIVO */
+#pg-listagem { display: none; }
+#pg-nova     { display: none; }
+#pg-admin    { display: none; }
 
 /* Telas ocultas por padrão — abordagem robusta */
-#screen-listagem { display: none; }
-#screen-nova { display: none; }
-#screen-admin { display: none; }
-
 
 :root{--bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--border:#30363d;--accent:#1f6feb;--accent2:#388bfd;--danger:#da3633;--success:#238636;--warn:#d29922;--txt:#e6edf3;--txt2:#8b949e;--txt3:#6e7681;--radius:8px}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',sans-serif;font-size:14px;min-height:100vh;line-height:1.6}
 ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-#screen-login{display:flex;align-items:center;justify-content:center;min-height:100vh;background:radial-gradient(ellipse at 30% 40%,#0d2847 0%,var(--bg) 60%)}
 .login-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:40px 32px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.6)}
 .login-logo{text-align:center;margin-bottom:28px}
 .login-logo .sigla{font-family:'Courier New',monospace;font-size:26px;font-weight:700;color:var(--accent2);letter-spacing:4px}
@@ -56,7 +54,6 @@ body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',sans-serif;fon
 .btn-sm{min-height:34px;padding:5px 11px;font-size:12px}
 .btn-full{width:100%}
 #login-error{color:var(--danger);font-size:12px;margin-top:6px;min-height:16px}
-#screen-app{display:none}
 .topbar{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 18px;height:52px;position:sticky;top:0;z-index:100}
 .topbar-brand{font-family:'Courier New',monospace;font-size:14px;font-weight:700;color:var(--accent2);letter-spacing:3px}
 .topbar-user{display:flex;align-items:center;gap:10px}
@@ -200,18 +197,11 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3)}
   min-width: 0;
 }
 
-
-
-
-
-
-
 /* Campos sempre ocupam 100% da célula do grid */
 .field-group { width: 100%; min-width: 0; }
 .field-group input,
 .field-group select,
 .field-group textarea { width: 100%; min-width: 0; box-sizing: border-box; }
-
 
 @media(max-width:768px){
   div[style*="grid-template-columns:repeat(4"]{grid-template-columns:repeat(2,minmax(0,1fr)) !important}
@@ -224,16 +214,11 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3)}
   div[style*="grid-template-columns:repeat(5"]{grid-template-columns:repeat(2,minmax(0,1fr)) !important}
   div[style*="grid-template-columns:repeat(3"]{grid-template-columns:1fr !important}
 }
-
-
-
-
-
-
 </style>
 </head>
 <body>
 
+<!-- LOGIN -->
 <div id="screen-login">
   <div class="login-card">
     <div class="login-logo">
@@ -245,10 +230,11 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3)}
     <div class="field-group"><label>Senha</label><input type="password" id="login-senha" placeholder="••••••••" autocomplete="current-password"></div>
     <div id="login-error"></div>
     <button class="btn btn-primary btn-full" style="margin-top:14px" onclick="fazerLogin()"><span id="btn-login-txt">Acessar Sistema</span></button>
-    <p style="text-align:center;margin-top:12px;font-size:11px;color:var(--txt3)">SIGROP v1.2 — Acesso restrito</p>
+    <p style="text-align:center;margin-top:12px;font-size:11px;color:var(--txt3)">SIGROP v1.3 — Acesso restrito</p>
   </div>
 </div>
 
+<!-- APP -->
 <div id="screen-app">
   <div class="topbar">
     <span class="topbar-brand">🛡️ SIGROP</span>
@@ -260,13 +246,11 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3)}
   <div class="nav-tabs">
     <div class="nav-tab active" onclick="irPara('listagem')" id="tab-listagem">📋 Ocorrências</div>
     <div class="nav-tab" onclick="irPara('nova')" id="tab-nova">➕ Nova</div>
-    <div class="nav-tab" id="tab-admin" onclick="irPara('admin')">⚙️ Admin</div>
+    <div class="nav-tab" id="tab-admin" onclick="irPara('admin')" style="display:none">⚙️ Admin</div>
   </div>
   <div class="main-content">
 
-    <!-- LISTAGEM -->
-    <div class="main-content">
-    <div id="screen-listagem">
+    <div id="pg-listagem">
       <div class="page-header">
         <div><div class="page-title">Ocorrências Registradas</div><div class="page-subtitle">Atualização em tempo real</div></div>
         <button class="btn btn-primary" onclick="irPara('nova')">➕ Nova Ocorrência</button>
@@ -292,7 +276,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3)}
 
     <!-- NOVA OCORRÊNCIA -->
 
-    <div id="screen-nova">
+    <div id="pg-nova">
       <div class="page-header">
         <div><div class="page-title" id="form-titulo">Nova Ocorrência</div><div class="page-subtitle" id="form-subtitulo">Preencha os campos obrigatórios</div></div>
         <button class="btn btn-ghost btn-sm" onclick="irPara('listagem')">← Voltar</button>
@@ -3668,9 +3652,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3)}
       </form>
     </div>
 
-    <!-- ADMIN -->
-
-    <div id="screen-admin">
+    <div id="pg-admin">
       <div class="page-header"><div><div class="page-title">Administração</div><div class="page-subtitle">Gestão de listas</div></div></div>
       <div id="admin-sections"></div>
       <div class="admin-section">
@@ -3682,6 +3664,9 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3)}
   </div>
 </div>
   </div>
+
+  </div>
+</div>
 
 <div class="modal-backdrop" id="modal-backdrop">
   <div class="modal">
@@ -3735,6 +3720,8 @@ waitFirebase(({auth,onAuthStateChanged})=>{
       usuarioAtual=user;isAdmin=ADMINS.includes(user.email);
       document.getElementById('user-unit').textContent=user.email;
       document.getElementById('screen-login').style.display='none';
+      ['listagem','nova','admin'].forEach(function(t){var el=document.getElementById('pg-'+t);if(el)el.style.display='none';});
+      document.getElementById('pg-listagem').style.display='block';
       if(isAdmin)document.getElementById('tab-admin').style.display='flex';
       // Mostrar tela correta ANTES de exibir o app
       var telas=['listagem','nova','admin'];
@@ -3742,7 +3729,7 @@ waitFirebase(({auth,onAuthStateChanged})=>{
         var el=document.getElementById('screen-'+telas[i]);
         if(el) el.style.display='none';
       }
-      document.getElementById('screen-listagem').style.display='block';
+      document.getElementById('pg-listagem').style.display='block';
       document.getElementById('screen-app').style.display='block';
       inicializar();
     }else{
@@ -3943,15 +3930,13 @@ function filtrarOcorrencias(){
 }
 
 function irPara(tela){
-  var telas=['listagem','nova','admin'];
-  for(var i=0;i<telas.length;i++){
-    var el=document.getElementById('screen-'+telas[i]);
+  ['listagem','nova','admin'].forEach(function(t){
+    var el=document.getElementById('pg-'+t);
     if(el) el.style.display='none';
-  }
-  var tabEls=document.querySelectorAll('.nav-tab');
-  for(var j=0;j<tabEls.length;j++) tabEls[j].classList.remove('active');
-  var show=document.getElementById('screen-'+tela);
-  if(show) show.style.display='block';
+  });
+  document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active');});
+  var pg=document.getElementById('pg-'+tela);
+  if(pg) pg.style.display='block';
   var tab=document.getElementById('tab-'+tela);
   if(tab) tab.classList.add('active');
   if(tela==='nova'&&!editandoId){
@@ -3962,6 +3947,7 @@ function irPara(tela){
   }
   window.scrollTo(0,0);
 }
+
 
 
 function selecionarCategoria(cat,el){
