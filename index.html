@@ -25,8 +25,6 @@
 <style>
 
 /* ── CONTROLE DE TELAS ─────────────────────────────────── */
-.screen { display: none !important; overflow: hidden; }
-.screen.active { display: block !important; overflow: visible; }
 
 :root{--bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--border:#30363d;--accent:#1f6feb;--accent2:#388bfd;--danger:#da3633;--success:#238636;--warn:#d29922;--txt:#e6edf3;--txt2:#8b949e;--txt3:#6e7681;--radius:8px}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -225,6 +223,9 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3)}
 
 
 
+
+#screen-listagem, #screen-nova, #screen-admin { display: none; }
+
 </style>
 </head>
 <body>
@@ -255,12 +256,12 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3)}
   <div class="nav-tabs">
     <div class="nav-tab active" onclick="irPara('listagem')" id="tab-listagem">📋 Ocorrências</div>
     <div class="nav-tab" onclick="irPara('nova')" id="tab-nova">➕ Nova</div>
-    <div class="nav-tab" id="tab-admin" onclick="irPara('admin')" style="display:none">⚙️ Admin</div>
+    <div class="nav-tab" id="tab-admin" onclick="irPara('admin')">⚙️ Admin</div>
   </div>
   <div class="main-content">
 
     <!-- LISTAGEM -->
-    <div class="screen active" id="screen-listagem">
+    <div id="screen-listagem">
       <div class="page-header">
         <div><div class="page-title">Ocorrências Registradas</div><div class="page-subtitle">Atualização em tempo real</div></div>
         <button class="btn btn-primary" onclick="irPara('nova')">➕ Nova Ocorrência</button>
@@ -285,7 +286,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3)}
     </div>
 
     <!-- NOVA OCORRÊNCIA -->
-    <div class="screen" id="screen-nova">
+    <div id="screen-nova">
       <div class="page-header">
         <div><div class="page-title" id="form-titulo">Nova Ocorrência</div><div class="page-subtitle" id="form-subtitulo">Preencha os campos obrigatórios</div></div>
         <button class="btn btn-ghost btn-sm" onclick="irPara('listagem')">← Voltar</button>
@@ -3662,7 +3663,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3)}
     </div>
 
     <!-- ADMIN -->
-    <div class="screen" id="screen-admin">
+    <div id="screen-admin">
       <div class="page-header"><div><div class="page-title">Administração</div><div class="page-subtitle">Gestão de listas</div></div></div>
       <div id="admin-sections"></div>
       <div class="admin-section">
@@ -3738,7 +3739,6 @@ waitFirebase(({auth,onAuthStateChanged})=>{
 });
 
 function inicializar(){
-  // Garantir estado inicial correto das telas
   irPara('listagem');
   COLECOES_ADMIN.forEach(c=>ouvirColecao(c.id));
   ouvirOcorrencias();
@@ -3928,28 +3928,26 @@ function filtrarOcorrencias(){
 }
 
 function irPara(tela){
-  // Ocultar todas as telas explicitamente
-  document.querySelectorAll('.screen').forEach(s=>{
-    s.classList.remove('active');
-    s.style.display='none';
-  });
-  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
-  // Exibir tela selecionada
-  const screenEl=document.getElementById('screen-'+tela);
-  const tabEl=document.getElementById('tab-'+tela);
-  if(screenEl){screenEl.classList.add('active');screenEl.style.display='block';}
-  if(tabEl) tabEl.classList.add('active');
+  var telas=['listagem','nova','admin'];
+  for(var i=0;i<telas.length;i++){
+    var el=document.getElementById('screen-'+telas[i]);
+    if(el) el.style.display='none';
+  }
+  var tabEls=document.querySelectorAll('.nav-tab');
+  for(var j=0;j<tabEls.length;j++) tabEls[j].classList.remove('active');
+  var show=document.getElementById('screen-'+tela);
+  if(show) show.style.display='block';
+  var tab=document.getElementById('tab-'+tela);
+  if(tab) tab.classList.add('active');
   if(tela==='nova'&&!editandoId){
     limparFormulario();
     document.getElementById('form-titulo').textContent='Nova Ocorrência';
     document.getElementById('form-subtitulo').textContent='Preencha os campos obrigatórios';
     document.getElementById('btn-salvar').innerHTML='💾 Salvar Ocorrência';
   }
-  if(tela==='listagem'){
-    editandoId=null;
-  }
   window.scrollTo(0,0);
 }
+
 
 function selecionarCategoria(cat,el){
   categoriaAtual=cat;
