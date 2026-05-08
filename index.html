@@ -29,6 +29,8 @@
 #pg-admin    { display: none; }
 
 /* Telas ocultas por padrão — abordagem robusta */
+#screen-login{display:flex;align-items:center;justify-content:center;min-height:100vh;background:radial-gradient(ellipse at 30% 40%,#0d2847 0%,var(--bg) 60%)}
+#screen-app{display:none}
 
 :root{--bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--border:#30363d;--accent:#1f6feb;--accent2:#388bfd;--danger:#da3633;--success:#238636;--warn:#d29922;--txt:#e6edf3;--txt2:#8b949e;--txt3:#6e7681;--radius:8px}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -3717,19 +3719,11 @@ async function fazerLogout(){waitFirebase(({auth,signOut})=>signOut(auth));}
 waitFirebase(({auth,onAuthStateChanged})=>{
   onAuthStateChanged(auth,user=>{
     if(user){
-      usuarioAtual=user;isAdmin=ADMINS.includes(user.email);
+      usuarioAtual=user;
+      isAdmin=ADMINS.includes(user.email);
       document.getElementById('user-unit').textContent=user.email;
-      document.getElementById('screen-login').style.display='none';
-      ['listagem','nova','admin'].forEach(function(t){var el=document.getElementById('pg-'+t);if(el)el.style.display='none';});
-      document.getElementById('pg-listagem').style.display='block';
       if(isAdmin)document.getElementById('tab-admin').style.display='flex';
-      // Mostrar tela correta ANTES de exibir o app
-      var telas=['listagem','nova','admin'];
-      for(var i=0;i<telas.length;i++){
-        var el=document.getElementById('screen-'+telas[i]);
-        if(el) el.style.display='none';
-      }
-      document.getElementById('pg-listagem').style.display='block';
+      document.getElementById('screen-login').style.display='none';
       document.getElementById('screen-app').style.display='block';
       inicializar();
     }else{
