@@ -217,6 +217,11 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3)}
   div[style*="grid-template-columns:repeat(3"]{grid-template-columns:1fr !important}
 }
 
+
+/* Garantir ocultação correta das telas */
+.screen { display: none !important; }
+.screen.active { display: block !important; }
+
 </style>
 </head>
 <body>
@@ -252,7 +257,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3)}
   <div class="main-content">
 
     <!-- LISTAGEM -->
-    <div class="screen active" id="screen-listagem">
+    <div class="screen active" id="screen-listagem" style="display:block">
       <div class="page-header">
         <div><div class="page-title">Ocorrências Registradas</div><div class="page-subtitle">Atualização em tempo real</div></div>
         <button class="btn btn-primary" onclick="irPara('nova')">➕ Nova Ocorrência</button>
@@ -277,7 +282,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3)}
     </div>
 
     <!-- NOVA OCORRÊNCIA -->
-    <div class="screen" id="screen-nova">
+    <div class="screen" id="screen-nova" style="display:none">
       <div class="page-header">
         <div><div class="page-title" id="form-titulo">Nova Ocorrência</div><div class="page-subtitle" id="form-subtitulo">Preencha os campos obrigatórios</div></div>
         <button class="btn btn-ghost btn-sm" onclick="irPara('listagem')">← Voltar</button>
@@ -3654,7 +3659,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3)}
     </div>
 
     <!-- ADMIN -->
-    <div class="screen" id="screen-admin">
+    <div class="screen" id="screen-admin" style="display:none">
       <div class="page-header"><div><div class="page-title">Administração</div><div class="page-subtitle">Gestão de listas</div></div></div>
       <div id="admin-sections"></div>
       <div class="admin-section">
@@ -3918,16 +3923,27 @@ function filtrarOcorrencias(){
 }
 
 function irPara(tela){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  // Ocultar todas as telas explicitamente
+  document.querySelectorAll('.screen').forEach(s=>{
+    s.classList.remove('active');
+    s.style.display='none';
+  });
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('screen-'+tela).classList.add('active');
-  document.getElementById('tab-'+tela).classList.add('active');
+  // Exibir tela selecionada
+  const screenEl=document.getElementById('screen-'+tela);
+  const tabEl=document.getElementById('tab-'+tela);
+  if(screenEl){screenEl.classList.add('active');screenEl.style.display='block';}
+  if(tabEl) tabEl.classList.add('active');
   if(tela==='nova'&&!editandoId){
     limparFormulario();
     document.getElementById('form-titulo').textContent='Nova Ocorrência';
     document.getElementById('form-subtitulo').textContent='Preencha os campos obrigatórios';
     document.getElementById('btn-salvar').innerHTML='💾 Salvar Ocorrência';
   }
+  if(tela==='listagem'){
+    editandoId=null;
+  }
+  window.scrollTo(0,0);
 }
 
 function selecionarCategoria(cat,el){
