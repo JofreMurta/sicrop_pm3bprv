@@ -24,14 +24,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 /* Controle de páginas — DEFINITIVO */
-/* Garantia adicional de ocultação */
-#pg-listagem, #pg-nova, #pg-admin {
-  display: none;
-  visibility: hidden;
-  position: absolute;
-  pointer-events: none;
-}
-
 #pg-listagem { display: none; }
 #pg-nova     { display: none; }
 #pg-admin    { display: none; }
@@ -224,6 +216,17 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3)}
   div[style*="grid-template-columns:repeat(5"]{grid-template-columns:repeat(2,minmax(0,1fr)) !important}
   div[style*="grid-template-columns:repeat(3"]{grid-template-columns:1fr !important}
 }
+
+/* Telas ocultas não ocupam espaço */
+#pg-listagem[style*="display: none"],
+#pg-nova[style*="display: none"],
+#pg-admin[style*="display: none"] {
+  height: 0 !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
 </style>
 </head>
 <body>
@@ -258,7 +261,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3)}
     <div class="nav-tab" onclick="irPara('nova')" id="tab-nova">➕ Nova</div>
     <div class="nav-tab" id="tab-admin" onclick="irPara('admin')" style="display:none">⚙️ Admin</div>
   </div>
-  <div class="main-content">
+  <div class="main-content" style="overflow-x:hidden">
 
     <div id="pg-listagem">
       <div class="page-header">
@@ -3934,21 +3937,11 @@ function filtrarOcorrencias(){
 function irPara(tela){
   ['listagem','nova','admin'].forEach(function(t){
     var el=document.getElementById('pg-'+t);
-    if(el){
-      el.style.display='none';
-      el.style.visibility='hidden';
-      el.style.position='absolute';
-      el.style.pointerEvents='none';
-    }
+    if(el) el.style.display='none';
   });
   document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active');});
   var pg=document.getElementById('pg-'+tela);
-  if(pg){
-    pg.style.display='block';
-    pg.style.visibility='visible';
-    pg.style.position='relative';
-    pg.style.pointerEvents='auto';
-  }
+  if(pg) pg.style.display='block';
   var tab=document.getElementById('tab-'+tela);
   if(tab) tab.classList.add('active');
   if(tela==='nova'&&!editandoId){
@@ -3959,7 +3952,7 @@ function irPara(tela){
   }
   window.scrollTo(0,0);
 }
-functionfunction selecionarCategoria(cat,el){
+functionfunctionfunction selecionarCategoria(cat,el){
   categoriaAtual=cat;
   document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.cat-panel').forEach(p=>p.classList.remove('active'));
@@ -4179,6 +4172,23 @@ function toast(msg,tipo='ok'){const t=document.getElementById('toast');t.textCon
 
 document.getElementById('modal-backdrop').addEventListener('click',e=>{if(e.target===document.getElementById('modal-backdrop'))fecharModal();});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('screen-login').style.display!=='none')fazerLogin();});
+
+// Expor funções no escopo global para uso nos onclick do HTML
+window.fazerLogin = fazerLogin;
+window.fazerLogout = fazerLogout;
+window.irPara = irPara;
+window.adicionarEquipe = adicionarEquipe;
+window.removerEquipe = removerEquipe;
+window.selecionarCategoria = selecionarCategoria;
+window.salvarOcorrencia = salvarOcorrencia;
+window.verOcorrencia = verOcorrencia;
+window.editarOcorrencia = editarOcorrencia;
+window.exportarPDF = exportarPDF;
+window.fecharModal = fecharModal;
+window.filtrarOcorrencias = filtrarOcorrencias;
+window.adicionarItem = adicionarItem;
+window.toggleItem = toggleItem;
+window.excluirItem = excluirItem;
 </script>
 </body>
 </html>
