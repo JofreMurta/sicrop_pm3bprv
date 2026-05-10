@@ -4,25 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SIGROP v1.3</title>
+<link rel="stylesheet" href="style.css">
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-  const firebaseConfig = {
-    apiKey:"AIzaSyAncqRwVPRSGmIjqJDgMLpdhzO1NCdnQ48",
-    authDomain:"sigrop-pm3bprv.firebaseapp.com",
-    projectId:"sigrop-pm3bprv",
-    storageBucket:"sigrop-pm3bprv.firebasestorage.app",
-    messagingSenderId:"917385998714",
-    appId:"1:917385998714:web:b4983ade086420461ae6c3"
-  };
-  const app=initializeApp(firebaseConfig);
-  const auth=getAuth(app);
-  const db=getFirestore(app);
-  window._sigrop={auth,db,signInWithEmailAndPassword,signOut,onAuthStateChanged,collection,addDoc,doc,updateDoc,deleteDoc,onSnapshot,serverTimestamp,query,orderBy};
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {getFirestore,collection,addDoc,doc,updateDoc,deleteDoc,onSnapshot,serverTimestamp,query,orderBy} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+const cfg={apiKey:"AIzaSyAncqRwVPRSGmIjqJDgMLpdhzO1NCdnQ48",authDomain:"sigrop-pm3bprv.firebaseapp.com",projectId:"sigrop-pm3bprv",storageBucket:"sigrop-pm3bprv.firebasestorage.app",messagingSenderId:"917385998714",appId:"1:917385998714:web:b4983ade086420461ae6c3"};
+const app=initializeApp(cfg);
+window._fb={auth:getAuth(app),db:getFirestore(app),signInWithEmailAndPassword,signOut,onAuthStateChanged,collection,addDoc,doc,updateDoc,deleteDoc,onSnapshot,serverTimestamp,query,orderBy};
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -34,34 +25,35 @@
       <div class="sigla">SIGROP</div>
       <div class="nome">Sistema de Gestão de Relatórios de Ocorrências Policiais</div>
     </div>
-    <div class="field-group"><label>Unidade / Usuário</label><input type="email" id="login-email" placeholder="unidade@pm.sp.gov.br" autocomplete="username"></div>
-    <div class="field-group"><label>Senha</label><input type="password" id="login-senha" placeholder="••••••••" autocomplete="current-password"></div>
+    <div class="fg"><label>Unidade / Usuário</label><input type="email" id="login-email" placeholder="unidade@pm.sp.gov.br" autocomplete="username"></div>
+    <div class="fg"><label>Senha</label><input type="password" id="login-senha" placeholder="••••••••" autocomplete="current-password"></div>
     <div id="login-error"></div>
-    <button class="btn btn-primary btn-full" style="margin-top:14px" onclick="fazerLogin()"><span id="btn-login-txt">Acessar Sistema</span></button>
+    <button class="btn btn-p btn-full" style="margin-top:14px" onclick="fazerLogin()"><span id="btn-login-txt">Acessar Sistema</span></button>
     <p style="text-align:center;margin-top:12px;font-size:11px;color:var(--txt3)">SIGROP v1.3 — Acesso restrito</p>
   </div>
 </div>
 
 <!-- APP -->
-<div id="screen-app" style="display:none">
+<div id="screen-app">
   <div class="topbar">
     <span class="topbar-brand">🛡️ SIGROP</span>
     <div class="topbar-user">
       <span class="topbar-unit" id="user-unit">—</span>
-      <button class="btn btn-ghost btn-sm" onclick="fazerLogout()">Sair</button>
+      <button class="btn btn-g btn-sm" onclick="fazerLogout()">Sair</button>
     </div>
   </div>
   <div class="nav-tabs">
-    <div class="nav-tab active" onclick="irPara('listagem')" id="tab-listagem">📋 Ocorrências</div>
-    <div class="nav-tab" onclick="irPara('nova')" id="tab-nova">➕ Nova</div>
+    <div class="nav-tab ativo" id="tab-listagem" onclick="irPara('listagem')">📋 Ocorrências</div>
+    <div class="nav-tab" id="tab-nova" onclick="irPara('nova')">➕ Nova</div>
     <div class="nav-tab" id="tab-admin" onclick="irPara('admin')" style="display:none">⚙️ Admin</div>
   </div>
-  <div class="main-content" style="overflow-x:hidden">
+  <div class="main-content">
 
-    <div id="pg-listagem" style="display:none">
+    <!-- TELA: LISTAGEM -->
+    <div class="tela ativa" id="tela-listagem">
       <div class="page-header">
         <div><div class="page-title">Ocorrências Registradas</div><div class="page-subtitle">Atualização em tempo real</div></div>
-        <button class="btn btn-primary" onclick="irPara('nova')">➕ Nova Ocorrência</button>
+        <button class="btn btn-p" onclick="irPara('nova')">➕ Nova Ocorrência</button>
       </div>
       <div class="stats-row">
         <div class="stat-card"><div class="val" id="stat-total">0</div><div class="lbl">Total</div></div>
@@ -70,49 +62,46 @@
       </div>
       <div class="filter-bar">
         <input type="text" id="filtro-busca" placeholder="🔍 Buscar…" oninput="filtrarOcorrencias()">
-        <select id="filtro-status" onchange="filtrarOcorrencias()" style="min-width:150px">
+        <select id="filtro-status" onchange="filtrarOcorrencias()">
           <option value="">Todos os status</option><option>Em andamento</option><option>Concluído</option><option>Cancelado</option>
         </select>
       </div>
       <div class="table-wrap">
         <table>
           <thead><tr><th>Data</th><th>Natureza</th><th>Município</th><th>Rodovia/KM</th><th>Status</th><th>Ações</th></tr></thead>
-          <tbody id="tabela-ocorrencias"><tr><td colspan="6"><div class="empty"><div class="icon">📄</div><p>Carregando…</p></div></td></tr></tbody>
+          <tbody id="tbody-ocs"><tr><td colspan="6"><div class="empty"><div class="icon">📄</div><p>Carregando…</p></div></td></tr></tbody>
         </table>
       </div>
     </div>
 
-    <!-- NOVA OCORRÊNCIA -->
-
-    <div id="pg-nova" style="display:none">
+    <!-- TELA: NOVA OCORRÊNCIA -->
+    <div class="tela" id="tela-nova">
       <div class="page-header">
-        <div><div class="page-title" id="form-titulo">Nova Ocorrência</div><div class="page-subtitle" id="form-subtitulo">Preencha os campos obrigatórios</div></div>
-        <button class="btn btn-ghost btn-sm" onclick="irPara('listagem')">← Voltar</button>
+        <div><div class="page-title" id="form-titulo">Nova Ocorrência</div><div class="page-subtitle" id="form-sub">Preencha os campos obrigatórios</div></div>
+        <button class="btn btn-g btn-sm" onclick="irPara('listagem')">← Voltar</button>
       </div>
-      <form id="form-ocorrencia" onsubmit="salvarOcorrencia(event)">
+      <form id="form-oc" onsubmit="salvarOcorrencia(event)">
 
         <!-- IDENTIFICAÇÃO -->
         <div class="form-card">
-          <div class="form-section-title">📌 Identificação</div>
-          <div style="display:grid;grid-template-columns:1fr;gap:11px;margin-bottom:11px">
-            <div class="field-group"><label>Natureza do Fato *</label><select id="f-fato" required><option value="">Selecione…</option></select></div>
+          <div class="sec-title">📌 Identificação</div>
+          <div class="grid g1" style="margin-bottom:11px">
+            <div class="fg"><label>Natureza do Fato *</label><select id="f-fato" required><option value="">Selecione…</option></select></div>
           </div>
-          <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px">
-            <div class="field-group"><label>Ambiente *</label>
-              <select id="f-ambiente" required><option value="">Selecione…</option><option>Rodovia</option><option>Rua</option><option>Casa</option><option>Bar</option><option>Automóvel</option><option>Fábrica</option><option>Área Rural</option><option>Outros</option></select>
-            </div>
-            <div class="field-group"><label>Data *</label><input type="date" id="f-data" required></div>
-            <div class="field-group"><label>Horário do Fato</label><input type="time" id="f-tempo-resposta"></div>
-            <div class="field-group"><label>Efetivo Empenhado</label><input type="text" id="f-efetivo" placeholder="Ex: 02 PMRv"></div>
+          <div class="grid g4">
+            <div class="fg"><label>Ambiente *</label><select id="f-ambiente" required><option value="">Selecione…</option><option>Rodovia</option><option>Rua</option><option>Casa</option><option>Bar</option><option>Automóvel</option><option>Fábrica</option><option>Área Rural</option><option>Outros</option></select></div>
+            <div class="fg"><label>Data *</label><input type="date" id="f-data" required></div>
+            <div class="fg"><label>Horário do Fato</label><input type="time" id="f-hora-fato"></div>
+            <div class="fg"><label>Efetivo Empenhado</label><input type="text" id="f-efetivo" placeholder="Ex: 02 PMRv"></div>
           </div>
         </div>
 
-        <!-- LOCALIZAÇÃO --><!-- LOCALIZAÇÃO -->
+        <!-- LOCALIZAÇÃO -->
         <div class="form-card">
-          <div class="form-section-title">📍 Localização</div>
-          <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:11px;margin-bottom:11px">
-            <div class="field-group"><label>SP / SPA / SPI / SPD *</label><select id="f-rodovia" required><option value="">Selecione…</option></select></div>
-            <div class="field-group"><label>KM</label><select id="f-km"><option value="">---</option><option>000</option>
+          <div class="sec-title">📍 Localização</div>
+          <div class="grid g5" style="margin-bottom:11px">
+            <div class="fg"><label>SP/SPA/SPI/SPD *</label><select id="f-rodovia" required><option value="">Selecione…</option></select></div>
+            <div class="fg"><label>KM</label><select id="f-km"><option value="">---</option><option>000</option>
 <option>001</option>
 <option>002</option>
 <option>003</option>
@@ -1112,7 +1101,7 @@
 <option>997</option>
 <option>998</option>
 <option>999</option></select></div>
-            <div class="field-group"><label>Metros</label><select id="f-metros"><option value="">---</option><option>000</option>
+            <div class="fg"><label>Metros</label><select id="f-metros"><option value="">---</option><option>000</option>
 <option>001</option>
 <option>002</option>
 <option>003</option>
@@ -2112,8 +2101,8 @@
 <option>997</option>
 <option>998</option>
 <option>999</option></select></div>
-            <div class="field-group"><label>Pista</label><select id="f-pista"><option value="">Selecione…</option><option>Norte</option><option>Sul</option><option>Leste</option><option>Oeste</option></select></div>
-            <div class="field-group"><label>Município *</label><select id="f-municipio" required><option value="">Selecione…</option><option>Adamantina</option>
+            <div class="fg"><label>Pista</label><select id="f-pista"><option value="">Selecione…</option><option>Norte</option><option>Sul</option><option>Leste</option><option>Oeste</option></select></div>
+            <div class="fg"><label>Município *</label><select id="f-municipio" required><option value="">Selecione…</option><option>Adamantina</option>
 <option>Adolfo</option>
 <option>Aguaí</option>
 <option>Águas da Prata</option>
@@ -2751,47 +2740,44 @@
 <option>Votuporanga</option>
 <option>Zacarias</option></select></div>
           </div>
-          <div style="display:grid;grid-template-columns:1fr;gap:11px">
-            <div class="field-group"><label>Locais de Socorro</label><input type="text" id="f-socorro" placeholder="Ex: PS de…"></div>
+          <div class="grid g1">
+            <div class="fg"><label>Locais de Socorro</label><input type="text" id="f-socorro" placeholder="Ex: PS de…"></div>
           </div>
         </div>
 
-        <!-- OPM --><!-- OPM -->
+        <!-- OPM -->
         <div class="form-card">
-          <div class="form-section-title">🏛️ OPM Envolvida</div>
-          <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;margin-bottom:11px">
-            <div class="field-group"><label>Btl</label><select id="f-btl"><option value="">Selecione…</option></select></div>
-            <div class="field-group"><label>Cia</label><select id="f-cia"><option value="">Selecione…</option></select></div>
-            <div class="field-group"><label>Pel</label><select id="f-pel"><option value="">Selecione…</option></select></div>
-            <div class="field-group"><label>Tempo de Resposta</label><input type="time" id="f-horario"></div>
+          <div class="sec-title">🏛️ OPM Envolvida</div>
+          <div class="grid g4" style="margin-bottom:11px">
+            <div class="fg"><label>Btl</label><select id="f-btl"><option value="">Selecione…</option></select></div>
+            <div class="fg"><label>Cia</label><select id="f-cia"><option value="">Selecione…</option></select></div>
+            <div class="fg"><label>Pel</label><select id="f-pel"><option value="">Selecione…</option></select></div>
+            <div class="fg"><label>Tempo de Resposta</label><input type="time" id="f-tempo-resp"></div>
           </div>
-          <div style="display:grid;grid-template-columns:1fr;gap:11px;margin-bottom:11px">
-            <div class="field-group"><label>DP</label><input type="text" id="f-dp" placeholder="Ex: 1º DP Araraquara"></div>
+          <div class="grid g1" style="margin-bottom:14px">
+            <div class="fg"><label>DP</label><input type="text" id="f-dp" placeholder="Ex: 1º DP Araraquara"></div>
           </div>
-          <div style="margin-top:14px">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
-              <span style="font-size:11px;color:var(--txt2);text-transform:uppercase;letter-spacing:1px;font-weight:600">Equipes</span>
-              <button type="button" class="btn btn-success btn-sm" onclick="adicionarEquipe()">+ Adicionar Equipe</button>
-            </div>
-            <div class="equipes-container" id="equipes-container"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
+            <span style="font-size:11px;color:var(--txt2);text-transform:uppercase;letter-spacing:1px;font-weight:600">Equipes</span>
+            <button type="button" class="btn btn-s btn-sm" onclick="addEquipe()">+ Adicionar Equipe</button>
           </div>
+          <div id="equipes-container"></div>
         </div>
 
         <!-- DADOS DA OCORRÊNCIA -->
         <div class="form-card">
-          <div class="form-section-title">🚨 Dados da Ocorrência</div>
+          <div class="sec-title">🚨 Dados da Ocorrência</div>
           <div class="cat-tabs">
-            <div class="cat-tab active" onclick="selecionarCategoria('transito',this)">🚗 Sinistro de Trânsito</div>
-            <div class="cat-tab" onclick="selecionarCategoria('criminal',this)">⚖️ Criminal</div>
-            <div class="cat-tab" onclick="selecionarCategoria('manifestacao',this)">📢 Manifestação</div>
-            <div class="cat-tab" onclick="selecionarCategoria('interdicao',this)">🚧 Interdição</div>
+            <div class="cat-tab ativo" onclick="selCat('transito',this)">🚗 Sinistro de Trânsito</div>
+            <div class="cat-tab" onclick="selCat('criminal',this)">⚖️ Criminal</div>
+            <div class="cat-tab" onclick="selCat('manifestacao',this)">📢 Manifestação</div>
+            <div class="cat-tab" onclick="selCat('interdicao',this)">🚧 Interdição</div>
           </div>
 
-          <!-- TRÂNSITO -->
-          <div class="cat-panel active" id="panel-transito">
-            <div class="group-label" style="font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:2px;margin:0 0 8px;padding-bottom:5px;border-bottom:1px solid var(--border)">🩸 Vítimas</div>
-            <div class="form-grid-fixed-3" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin-bottom:14px">
-              <div class="field-group"><label>Fatais</label><select id="f-t-fatais"><option>0</option><option>0</option>
+          <div class="cat-panel ativo" id="cat-transito">
+            <div class="grp-title">🩸 Vítimas</div>
+            <div class="grid g3" style="margin-bottom:14px">
+              <div class="fg"><label>Fatais</label><select id="f-t-fatais"><option>0</option><option>0</option>
 <option>1</option>
 <option>2</option>
 <option>3</option>
@@ -2842,7 +2828,7 @@
 <option>48</option>
 <option>49</option>
 <option>50</option></select></div>
-              <div class="field-group"><label>Graves</label><select id="f-t-graves"><option>0</option><option>0</option>
+              <div class="fg"><label>Graves</label><select id="f-t-graves"><option>0</option><option>0</option>
 <option>1</option>
 <option>2</option>
 <option>3</option>
@@ -2893,7 +2879,7 @@
 <option>48</option>
 <option>49</option>
 <option>50</option></select></div>
-              <div class="field-group"><label>Leves</label><select id="f-t-leves"><option>0</option><option>0</option>
+              <div class="fg"><label>Leves</label><select id="f-t-leves"><option>0</option><option>0</option>
 <option>1</option>
 <option>2</option>
 <option>3</option>
@@ -2945,9 +2931,9 @@
 <option>49</option>
 <option>50</option></select></div>
             </div>
-            <div style="font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:2px;margin:0 0 8px;padding-bottom:5px;border-bottom:1px solid var(--border)">🚗 Veículos Envolvidos</div>
-            <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:11px;margin-bottom:14px">
-              <div class="field-group"><label>AP</label><select id="f-t-ap"><option>0</option><option>0</option>
+            <div class="grp-title">🚗 Veículos Envolvidos</div>
+            <div class="grid g5" style="margin-bottom:14px">
+              <div class="fg"><label>AP</label><select id="f-t-ap"><option>0</option><option>0</option>
 <option>1</option>
 <option>2</option>
 <option>3</option>
@@ -2978,7 +2964,7 @@
 <option>28</option>
 <option>29</option>
 <option>30</option></select></div>
-              <div class="field-group"><label>Moto</label><select id="f-t-moto"><option>0</option><option>0</option>
+              <div class="fg"><label>Moto</label><select id="f-t-moto"><option>0</option><option>0</option>
 <option>1</option>
 <option>2</option>
 <option>3</option>
@@ -3009,7 +2995,7 @@
 <option>28</option>
 <option>29</option>
 <option>30</option></select></div>
-              <div class="field-group"><label>CA</label><select id="f-t-ca"><option>0</option><option>0</option>
+              <div class="fg"><label>CA</label><select id="f-t-ca"><option>0</option><option>0</option>
 <option>1</option>
 <option>2</option>
 <option>3</option>
@@ -3040,7 +3026,7 @@
 <option>28</option>
 <option>29</option>
 <option>30</option></select></div>
-              <div class="field-group"><label>OA</label><select id="f-t-oa"><option>0</option><option>0</option>
+              <div class="fg"><label>OA</label><select id="f-t-oa"><option>0</option><option>0</option>
 <option>1</option>
 <option>2</option>
 <option>3</option>
@@ -3071,7 +3057,7 @@
 <option>28</option>
 <option>29</option>
 <option>30</option></select></div>
-              <div class="field-group"><label>Outros</label><select id="f-t-outros-veic"><option>0</option><option>0</option>
+              <div class="fg"><label>Outros</label><select id="f-t-outros"><option>0</option><option>0</option>
 <option>1</option>
 <option>2</option>
 <option>3</option>
@@ -3103,30 +3089,27 @@
 <option>29</option>
 <option>30</option></select></div>
             </div>
-            <div style="font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:2px;margin:0 0 8px;padding-bottom:5px;border-bottom:1px solid var(--border)">🌦️ Via e Condições Climáticas</div>
-            <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin-bottom:14px">
-              <div class="field-group"><label>Pista</label><select id="f-t-pista-cond"><option value="">Selecione…</option><option>Simples</option><option>Dupla</option></select></div>
-              <div class="field-group"><label>Tempo</label><select id="f-t-tempo"><option value="">Selecione…</option><option>Bom</option><option>Chuvoso</option><option>Neblina</option><option>Cerração</option></select></div>
-              <div class="field-group"><label>Pavimento</label><select id="f-t-pavimento"><option value="">Selecione…</option><option>Seco</option><option>Molhado</option><option>Lama</option><option>Óleo</option></select></div>
+            <div class="grp-title">🌦️ Via e Condições</div>
+            <div class="grid g3" style="margin-bottom:14px">
+              <div class="fg"><label>Pista</label><select id="f-t-pista"><option value="">Selecione…</option><option>Simples</option><option>Dupla</option></select></div>
+              <div class="fg"><label>Tempo</label><select id="f-t-tempo"><option value="">Selecione…</option><option>Bom</option><option>Chuvoso</option><option>Neblina</option><option>Cerração</option></select></div>
+              <div class="fg"><label>Pavimento</label><select id="f-t-pavimento"><option value="">Selecione…</option><option>Seco</option><option>Molhado</option><option>Lama</option><option>Óleo</option></select></div>
             </div>
-            <div style="font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:2px;margin:0 0 8px;padding-bottom:5px;border-bottom:1px solid var(--border)">📋 Complemento</div>
-            <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px">
-              <div class="field-group"><label>Tipo de Sinistro</label>
-                <select id="f-t-tipo-sinistro"><option value="">Selecione…</option><option>Capotamento</option><option>Tombamento</option><option>Colisão Frontal</option><option>Colisão Traseira</option><option>Colisão Lateral</option><option>Colisão Transversal</option><option>Choque</option><option>Atropelamento Animal</option><option>Atropelamento de Pedestre</option><option>Engavetamento</option></select>
-              </div>
-              <div class="field-group"><label>Vítimas em Óbito</label><input type="text" id="f-t-obito" placeholder="Ex: A qualificar"></div>
+            <div class="grp-title">📋 Complemento</div>
+            <div class="grid g2">
+              <div class="fg"><label>Tipo de Sinistro</label><select id="f-t-tipo"><option value="">Selecione…</option><option>Capotamento</option><option>Tombamento</option><option>Colisão Frontal</option><option>Colisão Traseira</option><option>Colisão Lateral</option><option>Colisão Transversal</option><option>Choque</option><option>Atropelamento Animal</option><option>Atropelamento de Pedestre</option><option>Engavetamento</option></select></div>
+              <div class="fg"><label>Vítimas em Óbito</label><input type="text" id="f-t-obito" placeholder="Ex: A qualificar"></div>
             </div>
           </div>
 
-          <!-- CRIMINAL --><!-- CRIMINAL -->
-          <div class="cat-panel" id="panel-criminal">
-            <div style="font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:2px;margin:0 0 8px;padding-bottom:5px;border-bottom:1px solid var(--border)">🩸 Vítimas</div>
-            <div style="display:grid;grid-template-columns:1fr;gap:11px;margin-bottom:14px">
-              <div class="field-group"><label>Qtd. Vítimas</label><input type="text" id="f-c-vitimas-qtd" placeholder="Ex: 01 vítima fatal, 02 feridos graves"></div>
+          <div class="cat-panel" id="cat-criminal">
+            <div class="grp-title">🩸 Vítimas</div>
+            <div class="grid g1" style="margin-bottom:14px">
+              <div class="fg"><label>Qtd. Vítimas</label><input type="text" id="f-c-vitimas" placeholder="Ex: 01 vítima fatal, 02 feridos graves"></div>
             </div>
-            <div style="font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:2px;margin:0 0 8px;padding-bottom:5px;border-bottom:1px solid var(--border)">🚗 Veículos Envolvidos</div>
-            <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:11px;margin-bottom:14px">
-              <div class="field-group"><label>AP</label><select id="f-c-ap"><option>0</option><option>0</option>
+            <div class="grp-title">🚗 Veículos Envolvidos</div>
+            <div class="grid g5" style="margin-bottom:14px">
+              <div class="fg"><label>AP</label><select id="f-c-ap"><option>0</option><option>0</option>
 <option>1</option>
 <option>2</option>
 <option>3</option>
@@ -3157,7 +3140,7 @@
 <option>28</option>
 <option>29</option>
 <option>30</option></select></div>
-              <div class="field-group"><label>Moto</label><select id="f-c-moto"><option>0</option><option>0</option>
+              <div class="fg"><label>Moto</label><select id="f-c-moto"><option>0</option><option>0</option>
 <option>1</option>
 <option>2</option>
 <option>3</option>
@@ -3188,7 +3171,7 @@
 <option>28</option>
 <option>29</option>
 <option>30</option></select></div>
-              <div class="field-group"><label>CA</label><select id="f-c-ca"><option>0</option><option>0</option>
+              <div class="fg"><label>CA</label><select id="f-c-ca"><option>0</option><option>0</option>
 <option>1</option>
 <option>2</option>
 <option>3</option>
@@ -3219,7 +3202,7 @@
 <option>28</option>
 <option>29</option>
 <option>30</option></select></div>
-              <div class="field-group"><label>OA</label><select id="f-c-oa"><option>0</option><option>0</option>
+              <div class="fg"><label>OA</label><select id="f-c-oa"><option>0</option><option>0</option>
 <option>1</option>
 <option>2</option>
 <option>3</option>
@@ -3250,7 +3233,7 @@
 <option>28</option>
 <option>29</option>
 <option>30</option></select></div>
-              <div class="field-group"><label>Outros</label><select id="f-c-outros-veic"><option>0</option><option>0</option>
+              <div class="fg"><label>Outros</label><select id="f-c-outros"><option>0</option><option>0</option>
 <option>1</option>
 <option>2</option>
 <option>3</option>
@@ -3282,34 +3265,32 @@
 <option>29</option>
 <option>30</option></select></div>
             </div>
-            <div style="font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:2px;margin:0 0 8px;padding-bottom:5px;border-bottom:1px solid var(--border)">📋 Complemento</div>
-            <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px">
-              <div class="field-group" style="grid-column:1/-1"><label>Mat./Obj./Substâncias Apreendidos</label><input type="text" id="f-c-apreendidos" placeholder="Ex: 500g de maconha"></div>
-              <div class="field-group" style="grid-column:1/-1"><label>Mat./Obj./Substâncias Subtraídos</label><input type="text" id="f-c-subtraidos" placeholder="Ex: 01 aparelho celular"></div>
-              <div class="field-group"><label>Qtd. Pessoas Presas</label><input type="text" id="f-c-presos" placeholder="Ex: 01 Autor"></div>
-              <div class="field-group"><label>Qtd. Armas/Munição Apreendidas</label><input type="text" id="f-c-armas" placeholder="Ex: 01 revólver cal. 38"></div>
+            <div class="grp-title">📋 Complemento</div>
+            <div class="grid g1">
+              <div class="fg"><label>Mat./Obj./Substâncias Apreendidos</label><input type="text" id="f-c-apreendidos" placeholder="Ex: 500g de maconha"></div>
+              <div class="fg"><label>Mat./Obj./Substâncias Subtraídos</label><input type="text" id="f-c-subtraidos" placeholder="Ex: 01 aparelho celular"></div>
+              <div class="fg"><label>Qtd. Pessoas Presas</label><input type="text" id="f-c-presos" placeholder="Ex: 01 Autor"></div>
+              <div class="fg"><label>Qtd. Armas/Munição Apreendidas</label><input type="text" id="f-c-armas" placeholder="Ex: 01 revólver cal. 38"></div>
             </div>
           </div>
 
-          <!-- MANIFESTAÇÃO --><!-- MANIFESTAÇÃO -->
-          <div class="cat-panel" id="panel-manifestacao">
-            <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:11px;margin-bottom:11px">
-              <div class="field-group"><label>Qtd. Manifestantes</label><input type="text" id="f-m-manifestantes" placeholder="Ex: Aprox. 200"></div>
-              <div class="field-group"><label>Responsável pela Manifestação</label><input type="text" id="f-m-responsavel" placeholder="Ex: A qualificar — Nome, cargo, organização…"></div>
+          <div class="cat-panel" id="cat-manifestacao">
+            <div class="grid g12" style="margin-bottom:11px">
+              <div class="fg"><label>Qtd. Manifestantes</label><input type="text" id="f-m-qtd" placeholder="Ex: Aprox. 200"></div>
+              <div class="fg"><label>Responsável pela Manifestação</label><input type="text" id="f-m-resp" placeholder="Ex: A qualificar"></div>
             </div>
-            <div style="display:grid;grid-template-columns:1fr;gap:11px;margin-bottom:11px">
-              <div class="field-group"><label>Motivo da Manifestação</label><input type="text" id="f-m-motivo" placeholder="Ex: Greve, Protesto"></div>
+            <div class="grid g1" style="margin-bottom:11px">
+              <div class="fg"><label>Motivo da Manifestação</label><input type="text" id="f-m-motivo" placeholder="Ex: Greve, Protesto"></div>
             </div>
-            <div style="display:grid;grid-template-columns:1fr;gap:11px">
-              <div class="field-group"><label>Rodovia Interditada</label><select id="f-m-interdicao"><option value="">Selecione…</option><option>Sim — Total</option><option>Sim — Parcial</option><option>Não</option></select></div>
+            <div class="grid g1">
+              <div class="fg"><label>Rodovia Interditada</label><select id="f-m-interdicao"><option value="">Selecione…</option><option>Sim — Total</option><option>Sim — Parcial</option><option>Não</option></select></div>
             </div>
           </div>
 
-          <!-- INTERDIÇÃO --><!-- INTERDIÇÃO -->
-          <div class="cat-panel" id="panel-interdicao">
-            <div style="display:grid;grid-template-columns:minmax(0,3fr) minmax(0,1fr);gap:11px">
-              <div class="field-group"><label>Motivo da Interdição</label><input type="text" id="f-i-motivo" placeholder="Ex: Descrever o motivo"></div>
-              <div class="field-group"><label>Qtd. Km de Congestionamento</label><select id="f-i-km"><option>0</option><option>0</option>
+          <div class="cat-panel" id="cat-interdicao">
+            <div class="grid g13">
+              <div class="fg"><label>Motivo da Interdição</label><input type="text" id="f-i-motivo" placeholder="Ex: Descrever o motivo"></div>
+              <div class="fg"><label>Qtd. Km de Congestionamento</label><select id="f-i-km"><option>0</option><option>0</option>
 <option>1</option>
 <option>2</option>
 <option>3</option>
@@ -3412,58 +3393,60 @@
 <option>100</option></select></div>
             </div>
           </div>
-          </div>
         </div>
 
         <!-- COMANDO -->
         <div class="form-card">
-          <div class="form-section-title">👤 Comando</div>
-          <div class="form-grid">
-            <div class="field-group full"><label>Nome Completo CMT CPRv</label><select id="f-cmt-cpa"><option value="">Selecione…</option></select></div>
-            <div class="field-group full"><label>Nome Completo CMT BPRv</label><select id="f-cmt-btl"><option value="">Selecione…</option></select></div>
-            <div class="field-group full"><label>Nome Completo CMT CIA Rv</label><select id="f-cmt-cia-int"><option value="">Selecione…</option></select></div>
+          <div class="sec-title">👤 Comando</div>
+          <div class="grid g1">
+            <div class="fg"><label>Nome Completo CMT CPRv</label><select id="f-cmt-cprv"><option value="">Selecione…</option></select></div>
+            <div class="fg"><label>Nome Completo CMT BPRv</label><select id="f-cmt-bprv"><option value="">Selecione…</option></select></div>
+            <div class="fg"><label>Nome Completo CMT CIA Rv</label><select id="f-cmt-cia"><option value="">Selecione…</option></select></div>
           </div>
         </div>
 
         <!-- REGISTRO -->
         <div class="form-card">
-          <div class="form-section-title">📝 Registro e Histórico</div>
-          <div class="form-grid">
-            <div class="field-group"><label>PPRI</label><input type="text" id="f-ppri" placeholder="Ex: PPRI-2026-00001"></div>
-            <div class="field-group"><label>Token</label><input type="text" id="f-token" placeholder="Ex: BO-e Token BO2026…"></div>
-            <div class="field-group"><label>BO/PC</label><input type="text" id="f-bopc" placeholder="Ex: BO-2026-00001"></div>
-            <div class="field-group full"><label>Histórico *</label><textarea id="f-historico" required placeholder="Breve relato…" style="min-height:120px"></textarea></div>
+          <div class="sec-title">📝 Registro e Histórico</div>
+          <div class="grid g3" style="margin-bottom:11px">
+            <div class="fg"><label>PPRI</label><input type="text" id="f-ppri" placeholder="Ex: PPRI-2026-00001"></div>
+            <div class="fg"><label>Token</label><input type="text" id="f-token" placeholder="Ex: BO-e Token BO2026…"></div>
+            <div class="fg"><label>BO/PC</label><input type="text" id="f-bopc" placeholder="Ex: BO-2026-00001"></div>
+          </div>
+          <div class="grid g1">
+            <div class="fg"><label>Histórico *</label><textarea id="f-historico" required placeholder="Breve relato…" style="min-height:120px"></textarea></div>
           </div>
         </div>
 
         <!-- AUTORIDADES -->
         <div class="form-card">
-          <div class="form-section-title">🏅 Autoridades</div>
-          <div class="form-grid">
-            <div class="field-group full"><label>Autoridades que Comparecerão no Local</label><input type="text" id="f-autoridades-local" placeholder="Ex: 1º Sgt PM Prado (CGPRv)"></div>
-            <div class="field-group full"><label>Autoridades Cientificadas da Ocorrência</label><input type="text" id="f-autoridades-cient" placeholder="Ex: 1º Ten PM Vila (Oficial de permanência)"></div>
+          <div class="sec-title">🏅 Autoridades</div>
+          <div class="grid g1">
+            <div class="fg"><label>Autoridades que Comparecerão no Local</label><input type="text" id="f-aut-local" placeholder="Ex: 1º Sgt PM Prado (CGPRv)"></div>
+            <div class="fg"><label>Autoridades Cientificadas da Ocorrência</label><input type="text" id="f-aut-cient" placeholder="Ex: 1º Ten PM Vila (Oficial de permanência)"></div>
           </div>
         </div>
 
         <!-- STATUS -->
         <div class="form-card">
-          <div class="form-section-title">🔖 Status</div>
-          <div class="form-grid">
-            <div class="field-group"><label>Status *</label><select id="f-status" required><option>Em andamento</option><option>Concluído</option><option>Cancelado</option></select></div>
+          <div class="sec-title">🔖 Status</div>
+          <div class="grid g1">
+            <div class="fg"><label>Status *</label><select id="f-status" required><option>Em andamento</option><option>Concluído</option><option>Cancelado</option></select></div>
           </div>
         </div>
 
         <div style="display:flex;gap:9px;justify-content:flex-end;margin-top:7px;flex-wrap:wrap">
-          <button type="button" class="btn btn-ghost" onclick="irPara('listagem')">Cancelar</button>
-          <button type="submit" class="btn btn-success" id="btn-salvar">💾 Salvar Ocorrência</button>
+          <button type="button" class="btn btn-g" onclick="irPara('listagem')">Cancelar</button>
+          <button type="submit" class="btn btn-s" id="btn-salvar">💾 Salvar Ocorrência</button>
         </div>
       </form>
     </div>
 
-    <div id="pg-admin" style="display:none">
+    <!-- TELA: ADMIN -->
+    <div class="tela" id="tela-admin">
       <div class="page-header"><div><div class="page-title">Administração</div><div class="page-subtitle">Gestão de listas</div></div></div>
-      <div id="admin-sections"></div>
-      <div class="admin-section">
+      <div id="admin-conteudo"></div>
+      <div class="admin-sec">
         <h3>👥 Usuários / Unidades</h3>
         <p style="font-size:13px;color:var(--txt3)">Gerenciamento via Firebase Authentication: <strong style="color:var(--accent2)">console.firebase.google.com</strong></p>
       </div>
@@ -3472,10 +3455,11 @@
   </div>
 </div>
 
-<div class="modal-backdrop" id="modal-backdrop">
+<!-- MODAL -->
+<div class="modal-bg" id="modal-bg">
   <div class="modal">
     <div class="modal-header"><div class="modal-title" id="modal-titulo">Ocorrência</div><button class="modal-close" onclick="fecharModal()">✕</button></div>
-    <div id="modal-body"></div>
+    <div id="modal-corpo"></div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap" id="modal-actions"></div>
   </div>
 </div>
