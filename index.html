@@ -58,7 +58,7 @@
   </div>
   <div class="main-content" style="overflow-x:hidden">
 
-    <div id="pg-listagem">
+    <div id="pg-listagem" style="display:none">
       <div class="page-header">
         <div><div class="page-title">Ocorrências Registradas</div><div class="page-subtitle">Atualização em tempo real</div></div>
         <button class="btn btn-primary" onclick="irPara('nova')">➕ Nova Ocorrência</button>
@@ -84,7 +84,7 @@
 
     <!-- NOVA OCORRÊNCIA -->
 
-    <div id="pg-nova">
+    <div id="pg-nova" style="display:none">
       <div class="page-header">
         <div><div class="page-title" id="form-titulo">Nova Ocorrência</div><div class="page-subtitle" id="form-subtitulo">Preencha os campos obrigatórios</div></div>
         <button class="btn btn-ghost btn-sm" onclick="irPara('listagem')">← Voltar</button>
@@ -3460,7 +3460,7 @@
       </form>
     </div>
 
-    <div id="pg-admin">
+    <div id="pg-admin" style="display:none">
       <div class="page-header"><div><div class="page-title">Administração</div><div class="page-subtitle">Gestão de listas</div></div></div>
       <div id="admin-sections"></div>
       <div class="admin-section">
@@ -3468,10 +3468,6 @@
         <p style="font-size:13px;color:var(--txt3)">Gerenciamento via Firebase Authentication: <strong style="color:var(--accent2)">console.firebase.google.com</strong></p>
       </div>
     </div>
-
-  </div>
-</div>
-  </div>
 
   </div>
 </div>
