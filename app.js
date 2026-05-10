@@ -44,7 +44,6 @@ waitFirebase(({auth,onAuthStateChanged})=>{
       document.getElementById('user-unit').textContent=user.email;
       if(isAdmin)document.getElementById('tab-admin').style.display='flex';
       document.getElementById('screen-login').style.display='none';
-      document.getElementById('screen-app').style.display='block';
       inicializar();
     }else{
       usuarioAtual=null;
@@ -55,7 +54,9 @@ waitFirebase(({auth,onAuthStateChanged})=>{
 });
 
 function inicializar(){
+  // Primeiro mostrar a tela correta, depois revelar o app
   irPara('listagem');
+  document.getElementById('screen-app').style.display='block';
   COLECOES_ADMIN.forEach(c=>ouvirColecao(c.id));
   ouvirOcorrencias();
   document.getElementById('f-data').valueAsDate=new Date();
