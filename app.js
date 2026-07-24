@@ -175,6 +175,7 @@ function renderTabela(lista) {
     return '<tr>' +
       '<td style="font-family:\'Courier New\',monospace;white-space:nowrap">'+fmtData(o.data)+'</td>' +
       '<td>'+( o.fato||'—')+'</td>' +
+      '<td>'+(o.cia||'—')+'</td>' +
       '<td>'+(o.municipio||'—')+'</td>' +
       '<td>'+rod+'</td>' +
       '<td><span class="badge badge-'+badge+'">'+(o.status||'—')+'</span></td>' +
